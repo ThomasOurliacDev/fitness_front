@@ -1,1 +1,15 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global styles */
+@use 'styles/breakpoints';
+@use 'styles/tokens';
+@use 'primeicons/primeicons.css';
+
+// Overrides PrimeNG ponctuels (à utiliser avec parcimonie)
+@use 'styles/primeng-overrides';
+
+html, body {
+  margin: 0;
+  font-family: var(--app-font-family);
+  color: var(--app-color-text);
+  background: var(--app-color-page);
+}
+

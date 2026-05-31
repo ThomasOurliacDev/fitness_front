@@ -1,0 +1,53 @@
+// =============================================================================
+// Overrides PrimeNG — uniquement ce qui n'est PAS exprimable via tokens.
+// -----------------------------------------------------------------------------
+// 99% des couleurs / radius / densités doivent passer par `airbus-preset.ts`.
+// Ici : ajustements structurels (full-width, focus visible custom, etc.).
+// =============================================================================
+
+@use 'breakpoints' as bp;
+
+// --- Inputs : full-width par défaut dans nos formulaires verticaux ---------
+// Active la pleine largeur sur tous les form fields contenus dans `.form-stack`.
+.form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  // PrimeNG v21 enveloppe input/password dans des hosts ; on cible large.
+  :is(p-inputtext, p-password, p-select, p-multiselect, p-datepicker, p-textarea) {
+    width: 100%;
+  }
+  input, textarea, .p-inputtext, .p-password, .p-password-input { width: 100%; }
+}
+
+// --- Focus visible Airbus sur les CTA primaires ----------------------------
+.p-button:focus-visible {
+  outline: 2px solid var(--airbus-blue);
+  outline-offset: 2px;
+}
+
+// --- Tables : option `dense` (à appliquer sur <p-table styleClass="dense">) -
+.p-datatable.dense {
+  .p-datatable-thead > tr > th,
+  .p-datatable-tbody > tr > td { padding: 0.5rem 0.75rem; }
+}
+
+// --- Tables responsive : scroll horizontal sous md plutôt que casser ------
+.p-datatable-wrapper { overflow-x: auto; }
+
+// --- Dialogs : largeur fluide sur mobile ----------------------------------
+@include bp.down(md) {
+  .p-dialog {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0 !important;
+  }
+}
+
+// --- Menu (overlay) : padding tactile sur mobile ---------------------------
+@include bp.down(sm) {
+  .p-menu .p-menuitem-link { padding: 0.875rem 1rem; }
+}

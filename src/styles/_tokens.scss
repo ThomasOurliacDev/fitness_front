@@ -1,0 +1,57 @@
+// =============================================================================
+// Airbus design tokens
+// -----------------------------------------------------------------------------
+// PrimeNG v21 expose déjà des CSS vars (--p-primary-500, --p-surface-*, etc.)
+// On ajoute ici des alias "métier" pour les composants custom, afin que
+// PrimeNG ET les composants maison partagent EXACTEMENT la même palette.
+// =============================================================================
+
+:root {
+  // --- Couleurs de marque ---------------------------------------------------
+  --airbus-blue:        #00205B;
+  --airbus-blue-hover:  #001d52;
+  --airbus-blue-active: #001947;
+  --airbus-blue-50:     #e6ecf3;
+  --airbus-blue-100:    #bfcde0;
+  --airbus-blue-contrast: #ffffff;
+
+  // --- Alias sémantiques (à utiliser dans les composants custom) -----------
+  --app-color-primary:           var(--p-primary-color, var(--airbus-blue));
+  --app-color-primary-contrast:  var(--p-primary-contrast-color, #ffffff);
+  --app-color-primary-hover:     var(--p-primary-hover-color, var(--airbus-blue-hover));
+  --app-color-primary-active:    var(--p-primary-active-color, var(--airbus-blue-active));
+
+  --app-color-surface:           var(--p-content-background, #ffffff);
+  --app-color-surface-border:    var(--p-content-border-color, #e5e7eb);
+
+  // Fond de page (derrière les cartes) — beige pâle pour réduire la fatigue oculaire
+  --app-color-page:              #f7f3ec;
+
+  --app-color-text:              var(--p-text-color, #111827);
+  --app-color-text-muted:        var(--p-text-muted-color, #6b7280);
+
+  // --- Rayons / espacements / typo (alignés sur Aura) ----------------------
+  --app-radius-sm: 4px;
+  --app-radius-md: 6px;
+  --app-radius-lg: 10px;
+
+  --app-font-family: var(--p-font-family, 'Inter', system-ui, sans-serif);
+}
+
+// --- Dark mode -------------------------------------------------------------
+// Activé via la classe `.app-dark` sur <html> (cf. ThemeService).
+// Doit matcher `darkModeSelector` de providePrimeNG.
+.app-dark {
+  // Le bleu hérité du preset est déjà inversé par PrimeNG (primary.300).
+  // On ajuste juste les alias dérivés à la main pour rester cohérent.
+  --airbus-blue-50:  #1a2440; // teinte sombre pour hover discret sur fond sombre
+  --airbus-blue-100: #243056;
+
+  // Navbar/sidebar : on garde le bleu Airbus, mais légèrement grisé en dark
+  // pour qu'il se fonde mieux avec un fond sombre (moins de contraste brutal).
+  --airbus-blue: #1a2a4d;
+
+  // Fond de page sombre : bleu-gris doux (pas du noir pur)
+  --app-color-page: #1f2a44;
+}
+

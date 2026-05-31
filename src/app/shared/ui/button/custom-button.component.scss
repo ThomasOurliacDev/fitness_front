@@ -1,0 +1,31 @@
+:host { display: inline-block; }
+
+.custom-btn {
+  font-family: var(--app-font-family);
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: var(--app-radius-md);
+  border: 1px solid var(--app-color-primary);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+
+  &[data-variant='primary'] {
+    background: var(--app-color-primary);
+    color: var(--app-color-primary-contrast);
+
+    &:hover  { background: var(--app-color-primary-hover); border-color: var(--app-color-primary-hover); }
+    &:active { background: var(--app-color-primary-active); border-color: var(--app-color-primary-active); }
+  }
+
+  &[data-variant='outline'] {
+    background: transparent;
+    color: var(--app-color-primary);
+
+    &:hover { background: var(--airbus-blue-50); }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--airbus-blue);
+    outline-offset: 2px;
+  }
+}

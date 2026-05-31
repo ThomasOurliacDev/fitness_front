@@ -1,0 +1,66 @@
+// =============================================================================
+// Breakpoints — source unique pour tout le responsive
+// -----------------------------------------------------------------------------
+// USAGE dans un composant :
+//   @use 'breakpoints' as bp;
+//   .my-class {
+//     padding: 1rem;
+//     @include bp.up(md) { padding: 2rem; }   // ≥ 768px
+//     @include bp.down(sm) { padding: 0.5rem; } // < 640px
+//   }
+// =============================================================================
+
+@use 'sass:map';
+
+// Échelle alignée sur Tailwind (et compatible avec PrimeFlex).
+$breakpoints: (
+  xs: 0,
+  sm: 640px,
+  md: 768px,
+  lg: 1024px,
+  xl: 1280px,
+  '2xl': 1536px
+) !default;
+
+// --- CSS vars (lecture JS / interpolations) -------------------------------
+:root {
+  --bp-sm: 640px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1280px;
+  --bp-2xl: 1536px;
+}
+
+// =============================================================================
+// Mixins
+// =============================================================================
+
+/// Applique à partir d'un breakpoint (inclus). Mobile-first → privilégié.
+@mixin up($name) {
+  $value: map.get($breakpoints, $name);
+  @if $value == null { @error "Breakpoint inconnu: #{$name}"; }
+  @if $value == 0 { @content; } @else {
+    @media (min-width: #{$value}) { @content; }
+  }
+}
+
+/// Applique en-dessous d'un breakpoint (exclus). À utiliser avec parcimonie.
+@mixin down($name) {
+  $value: map.get($breakpoints, $name);
+  @if $value == null { @error "Breakpoint inconnu: #{$name}"; }
+  // -0.02px pour éviter les recouvrements avec `up()` sur le même seuil
+  @media (max-width: #{$value - 0.02px}) { @content; }
+}
+
+/// Applique entre deux breakpoints [min, max[.
+@mixin between($min, $max) {
+  $minV: map.get($breakpoints, $min);
+  $maxV: map.get($breakpoints, $max);
+  @media (min-width: #{$minV}) and (max-width: #{$maxV - 0.02px}) { @content; }
+}
+
+/// Container query par taille — pour composants qui s'adaptent à LEUR conteneur.
+/// Le parent doit avoir `container-type: inline-size`.
+@mixin contain-up($size) {
+  @container (min-width: #{$size}) { @content; }
+}

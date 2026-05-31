@@ -1,8 +1,32 @@
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { providePrimeNG } from 'primeng/config';
+import { MessageService } from 'primeng/api';
 
 import { routes } from './app.routes';
+import { AirbusPreset } from './theme/airbus-preset';
 
 export const appConfig: ApplicationConfig = {
-  providers: [provideZoneChangeDetection({ eventCoalescing: true }), provideRouter(routes)]
+  providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
+    provideRouter(routes),
+    provideAnimationsAsync(),
+    // Fournit MessageService au niveau racine → un seul <p-toast> global suffit.
+    MessageService,
+    providePrimeNG({
+      ripple: true,
+      theme: {
+        preset: AirbusPreset,
+        options: {
+          // Scope sous lequel les CSS vars PrimeNG seront émises
+          darkModeSelector: '.app-dark',
+          cssLayer: {
+            name: 'primeng',
+            order: 'tailwind-base, primeng, tailwind-utilities'
+          }
+        }
+      }
+    })
+  ]
 };

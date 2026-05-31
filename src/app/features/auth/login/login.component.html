@@ -1,0 +1,104 @@
+<div class="login">
+  <!-- Colonne gauche : formulaire -->
+  <section class="login__form" aria-label="Authentication">
+    <div class="login__form-inner">
+      <div class="login__brand">
+        <i class="pi pi-send"></i>
+        <span>Airbus POC</span>
+      </div>
+
+      <h1>Bienvenue</h1>
+      <p class="login__subtitle">Connectez-vous ou créez un compte pour continuer.</p>
+
+      @if (error()) {
+        <p-message severity="error" [text]="error()!" styleClass="login__error" />
+      }
+
+      <p-tabs value="login">
+        <p-tablist>
+          <p-tab value="login">Connexion</p-tab>
+          <p-tab value="register">Créer un compte</p-tab>
+        </p-tablist>
+        <p-tabpanels>
+        <!-- ---- Connexion ---- -->
+        <p-tabpanel value="login">
+          <form (ngSubmit)="submitLogin()" class="login__fields">
+            <label>
+              <span>Email</span>
+              <input pInputText type="email" name="email" [(ngModel)]="email" autocomplete="email" required />
+            </label>
+            <label>
+              <span>Mot de passe</span>
+              <p-password
+                name="password"
+                [(ngModel)]="password"
+                [feedback]="false"
+                [toggleMask]="true"
+                autocomplete="current-password"
+                styleClass="w-full"
+                inputStyleClass="w-full"
+              />
+            </label>
+            <p-button
+              type="submit"
+              label="Se connecter"
+              icon="pi pi-sign-in"
+              [loading]="loading()"
+              styleClass="w-full"
+            />
+          </form>
+        </p-tabpanel>
+
+        <!-- ---- Création de compte ---- -->
+        <p-tabpanel value="register">
+          <form (ngSubmit)="submitRegister()" class="login__fields">
+            <label>
+              <span>Nom</span>
+              <input pInputText name="rName" [(ngModel)]="rName" autocomplete="name" />
+            </label>
+            <label>
+              <span>Email</span>
+              <input pInputText type="email" name="rEmail" [(ngModel)]="rEmail" autocomplete="email" required />
+            </label>
+            <label>
+              <span>Mot de passe</span>
+              <p-password
+                name="rPassword"
+                [(ngModel)]="rPassword"
+                [toggleMask]="true"
+                autocomplete="new-password"
+                styleClass="w-full"
+                inputStyleClass="w-full"
+              />
+            </label>
+            <p-button
+              type="submit"
+              label="Créer mon compte"
+              icon="pi pi-user-plus"
+              [loading]="loading()"
+              styleClass="w-full"
+            />
+          </form>
+        </p-tabpanel>
+        </p-tabpanels>
+      </p-tabs>
+    </div>
+  </section>
+
+  <!-- Colonne droite : pitch produit -->
+  <aside class="login__pitch" aria-hidden="false">
+    <div class="login__pitch-inner">
+      <h2>L'app qui simplifie votre quotidien</h2>
+      <p>
+        Centralisez vos données, suivez votre activité et consultez votre historique
+        en un coup d'œil. Conçue pour les équipes Airbus.
+      </p>
+      <ul>
+        <li><i class="pi pi-check-circle"></i> Tableau de bord temps réel</li>
+        <li><i class="pi pi-check-circle"></i> Suivi d'activité détaillé</li>
+        <li><i class="pi pi-check-circle"></i> Historique consultable et exportable</li>
+        <li><i class="pi pi-check-circle"></i> Paramétrage fin par utilisateur</li>
+      </ul>
+    </div>
+  </aside>
+</div>

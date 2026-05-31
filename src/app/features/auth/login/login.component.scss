@@ -1,0 +1,100 @@
+@use 'breakpoints' as bp;
+
+:host { display: block; height: 100dvh; }
+
+.login {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: 100dvh;
+
+  // Mobile : une seule colonne, on masque le pitch
+  @include bp.down(lg) {
+    grid-template-columns: 1fr;
+  }
+
+  &__form {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: var(--app-color-page);
+    overflow-y: auto;
+  }
+
+  &__form-inner {
+    width: 100%;
+    max-width: 420px;
+  }
+
+  &__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--app-color-primary);
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+  }
+
+  h1 { margin: 0 0 0.25rem; color: var(--app-color-text); }
+  &__subtitle { color: var(--app-color-text-muted); margin: 0 0 1.5rem; }
+  &__error    { display: block; margin-bottom: 1rem; }
+
+  &__fields {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.375rem;
+      font-size: 0.875rem;
+      color: var(--app-color-text);
+
+      input { width: 100%; }
+    }
+
+    // p-password wrapper
+    :is(p-password, .p-password, .p-inputtext) { width: 100%; }
+  }
+
+  // ---- Colonne droite : pitch ----
+  &__pitch {
+    background: linear-gradient(135deg, var(--app-color-primary) 0%, var(--app-color-primary-active) 100%);
+    color: var(--app-color-primary-contrast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+  }
+
+  &__pitch-inner {
+    max-width: 520px;
+
+    h2 { font-size: 2rem; margin: 0 0 1rem; line-height: 1.2; }
+    p  { font-size: 1.05rem; line-height: 1.6; opacity: 0.9; }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 2rem 0 0;
+      display: grid;
+      gap: 0.75rem;
+
+      li {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1rem;
+        i { color: var(--airbus-blue-100); }
+      }
+    }
+  }
+
+  // Mobile/tablette : on masque la colonne pitch (déjà géré côté grid plus haut)
+  @include bp.down(lg) {
+    &__pitch { display: none; }
+  }
+}

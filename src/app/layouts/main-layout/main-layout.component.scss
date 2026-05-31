@@ -1,0 +1,49 @@
+@use 'breakpoints' as bp;
+
+:host { display: block; height: 100dvh; } // dvh = dynamic viewport (mobile-safe)
+
+.layout {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  height: 100dvh;
+  transition: grid-template-columns 0.2s ease;
+
+  &.collapsed { grid-template-columns: 72px 1fr; }
+
+  &__main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0; // empêche l'overflow horizontal
+    background: var(--app-color-page);
+  }
+
+  &__content {
+    flex: 1;
+    overflow: auto;
+    // Padding fluide : 0.75rem (mobile) → 1.5rem (desktop)
+    padding: clamp(0.75rem, 2vw, 1.5rem);
+  }
+}
+
+// Mobile : sidebar passe en mode "drawer" (overlay)
+@include bp.down(md) {
+  .layout {
+    grid-template-columns: 1fr;        // sidebar sort du flux
+    &.collapsed { grid-template-columns: 1fr; }
+
+    app-sidebar {
+      position: fixed;
+      inset: 0 auto 0 0;               // top:0 right:auto bottom:0 left:0
+      width: 180px;
+      z-index: 50;
+      transform: translateX(-100%);
+      transition: transform 0.2s ease;
+      box-shadow: 0 0 0 100vmax transparent;
+    }
+
+    &:not(.collapsed) app-sidebar {
+      transform: translateX(0);
+      box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.45); // overlay scrim
+    }
+  }
+}
