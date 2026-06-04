@@ -4,7 +4,7 @@
     <div class="login__form-inner">
       <div class="login__brand">
         <i class="pi pi-send"></i>
-        <span>Airbus POC</span>
+        <span>Fitness App</span>
       </div>
 
       <h1>Bienvenue</h1>
@@ -53,8 +53,12 @@
         <p-tabpanel value="register">
           <form (ngSubmit)="submitRegister()" class="login__fields">
             <label>
+              <span>Prénom</span>
+              <input pInputText name="rFirstName" [(ngModel)]="rFirstName" autocomplete="given-name" />
+            </label>
+            <label>
               <span>Nom</span>
-              <input pInputText name="rName" [(ngModel)]="rName" autocomplete="name" />
+              <input pInputText name="rLastName" [(ngModel)]="rLastName" autocomplete="family-name" />
             </label>
             <label>
               <span>Email</span>

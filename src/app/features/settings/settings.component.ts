@@ -17,7 +17,8 @@ import { AuthService } from '../../core/auth/auth.service';
     </p-card>
 
     <p-card header="Compte" styleClass="mt-3">
-      <p><strong>Utilisateur :</strong> {{ auth.user()?.name }}</p>
+      <p><strong>Prénom :</strong> {{ auth.user()?.firstName }}</p>
+      <p><strong>Nom :</strong> {{ auth.user()?.lastName }}</p>
       <p><strong>Email :</strong> {{ auth.user()?.email }}</p>
     </p-card>
   `,

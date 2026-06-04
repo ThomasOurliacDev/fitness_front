@@ -4,6 +4,6 @@ import { AppEnvironment } from './environment.model';
 export const environment: AppEnvironment = {
   name: 'LOCAL',
   production: false,
-  apiUrl: 'http://localhost:3000/api/v1',
+  apiUrl: 'http://localhost:3000/v1',
   enableDebugLogs: true
 };

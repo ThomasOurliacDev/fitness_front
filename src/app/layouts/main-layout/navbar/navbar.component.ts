@@ -22,8 +22,6 @@ import { ENVIRONMENT } from '../../../core/config/environment.token';
         <i class="pi pi-bars"></i>
       </button>
 
-      <div class="navbar__title">Airbus POC</div>
-
       @if (env.name !== 'PROD') {
         <span class="navbar__env" [attr.data-env]="env.name">{{ env.name }}</span>
       }
@@ -34,10 +32,10 @@ import { ENVIRONMENT } from '../../../core/config/environment.token';
         type="button"
         class="navbar__user"
         (click)="userMenu.toggle($event)"
-        [attr.aria-label]="'User menu for ' + (auth.user()?.name ?? 'guest')"
+        [attr.aria-label]="'User menu for ' + (auth.displayName() ?? 'guest')"
       >
         <i class="pi pi-user"></i>
-        <span>{{ auth.user()?.name }}</span>
+        <span>{{ auth.displayName() }}</span>
         <i class="pi pi-chevron-down"></i>
       </button>
       <p-menu #userMenu [model]="userMenuItems" [popup]="true" appendTo="body" />

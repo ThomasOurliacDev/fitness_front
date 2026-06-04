@@ -8,6 +8,7 @@ import { TabsModule } from 'primeng/tabs';
 import { MessageModule } from 'primeng/message';
 import { AuthService } from '../../../core/auth/auth.service';
 import { ToasterService } from '../../../core/notifications/toaster.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-login',
@@ -26,7 +27,8 @@ export class LoginComponent {
   email = '';
   password = '';
   // register
-  rName = '';
+  rFirstName = '';
+  rLastName = '';
   rEmail = '';
   rPassword = '';
 
@@ -44,10 +46,11 @@ export class LoginComponent {
     try {
       await this.auth.login(this.email, this.password);
       this.toaster.success('Connecté', `Bienvenue ${this.email}`);
-      this.router.navigate(['/dashboard']);
-    } catch {
-      this.error.set('Échec de la connexion.');
-      this.toaster.error('Connexion impossible', 'Vérifiez vos identifiants et réessayez.');
+      this.router.navigate(['/program']);
+    } catch (err) {
+      const message = this.extractError(err, 'Échec de la connexion. Vérifiez vos identifiants et réessayez.');
+      this.error.set(message);
+      this.toaster.error('Connexion impossible', message);
     } finally {
       this.loading.set(false);
     }
@@ -55,21 +58,34 @@ export class LoginComponent {
 
   async submitRegister(): Promise<void> {
     this.error.set(null);
-    if (!this.rEmail || !this.rPassword) {
-      this.error.set('Email et mot de passe requis.');
-      this.toaster.warn('Champs manquants', 'Email et mot de passe sont obligatoires.');
+    if (!this.rEmail || !this.rPassword || !this.rFirstName || !this.rLastName) {
+      this.error.set('Tous les champs sont requis.');
+      this.toaster.warn('Champs manquants', 'Veuillez remplir tous les champs.');
       return;
     }
     this.loading.set(true);
     try {
-      await this.auth.register(this.rEmail, this.rPassword, this.rName);
+      await this.auth.register(this.rEmail, this.rPassword, this.rFirstName, this.rLastName);
       this.toaster.success('Compte créé', 'Votre espace est prêt.');
-      this.router.navigate(['/dashboard']);
-    } catch {
-      this.error.set('Échec de la création du compte.');
-      this.toaster.error('Création impossible', 'Une erreur est survenue. Réessayez plus tard.');
+      this.router.navigate(['/program']);
+    } catch (err) {
+      const message = this.extractError(err, 'Échec de la création du compte.');
+      this.error.set(message);
+      this.toaster.error('Création impossible', message); 
     } finally {
       this.loading.set(false);
     }
+  }
+
+  private extractError(err: unknown, fallback: string): string {
+    if (err instanceof HttpErrorResponse) {
+      const body = err.error as { message?: string | string[] } | string | null;
+      if (typeof body === 'string' && body) return body;
+      if (body && typeof body === 'object' && body.message) {
+        return Array.isArray(body.message) ? body.message.join(' ') : body.message;
+      }
+      if (err.status === 0) return 'Impossible de contacter le serveur. Vérifiez votre connexion.';
+    }
+    return fallback;
   }
 }

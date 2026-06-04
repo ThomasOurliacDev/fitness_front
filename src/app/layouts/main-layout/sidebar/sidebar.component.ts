@@ -11,7 +11,7 @@ import { NAV_ITEMS_LOWER, NAV_ITEMS_UPPER } from '../../../core/navigation/nav-i
     <aside class="sidebar" [class.collapsed]="collapsed()">
       <div class="sidebar__brand">
         <i class="pi pi-send"></i>
-        @if (!collapsed()) { <span>POC</span> }
+        @if (!collapsed()) { <span>Fitness__App</span> }
       </div>
 
       <nav class="sidebar__nav" aria-label="Primary">
