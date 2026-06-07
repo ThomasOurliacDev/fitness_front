@@ -1,0 +1,32 @@
+<h1>Mes Entrainements</h1>
+    <div class="grid">
+      <p-card header="Sessions"     subheader="Aujourd'hui">   <p class="kpi">1 248</p></p-card>
+      <p-card header="Erreurs"      subheader="Dernière heure"><p class="kpi">3</p></p-card>
+      <p-card header="Utilisateurs" subheader="Actifs">        <p class="kpi">87</p></p-card>
+      <p-card header="Latence p95"  subheader="API">           <p class="kpi">142 ms</p></p-card>
+    </div>
+ <div class="card">
+            <p-tabs value="0">
+                <p-tablist>
+                    @for (tab of tabs; track tab.label) {
+                        <p-tab [value]="tab.value">
+                            <span class="material-symbols-outlined">{{tab.icon}}</span>
+                            <span>{{ tab.label }}</span>
+                        </p-tab>
+                    }
+                </p-tablist>
+
+                <p-tabpanels>
+                    <p-tabpanel value="0">
+                        <p class="m-0">
+                            <app-program></app-program>
+                        </p>
+                    </p-tabpanel>
+                    <p-tabpanel value="1">
+                        <p class="m-0">
+                            <app-workout></app-workout>
+                        </p>
+                    </p-tabpanel>
+                </p-tabpanels>
+            </p-tabs>
+        </div>

@@ -1,0 +1,15 @@
+h1 { margin: 0 0 1rem; }
+    .grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .kpi { font-size: 2rem; font-weight: 700; color: var(--app-color-primary); margin: 0; }
+
+    .card {
+        margin-top: 10px;
+
+        p-tab {
+        display: flex;
+
+            .material-symbols-outlined {
+                padding-right: 1px;
+              }
+        }
+    }

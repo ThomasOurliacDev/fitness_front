@@ -25,8 +25,8 @@ export const routes: Routes = [
       import('./layouts/main-layout/main-layout.component').then(m => m.MainLayoutComponent),
     // canMatch: [authGuard],
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'program' },
-      { path: 'program', loadComponent: () => import('./features/program/program.component') },
+      { path: '', pathMatch: 'full', redirectTo: 'entrainement' },
+      { path: 'entrainement', loadComponent: () => import('./features/entrainement/entrainement.component') },
       { path: 'activity',  loadComponent: () => import('./features/activity/activity.component')  },
       { path: 'history',   loadComponent: () => import('./features/history/history.component')   },
       { path: 'settings',  loadComponent: () => import('./features/settings/settings.component')  }

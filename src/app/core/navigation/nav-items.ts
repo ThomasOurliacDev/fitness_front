@@ -5,7 +5,7 @@ export interface NavItem {
 }
 
 export const NAV_ITEMS_UPPER: NavItem[] = [
-  { label: 'Program',  icon: 'pi pi-heart',       route: '/program' },
+  { label: 'Entrainement',  icon: 'pi pi-heart',       route: '/entrainement' },
   { label: 'Activity',   icon: 'pi pi-bolt',       route: '/activity'  },
   { label: 'Historique', icon: 'pi pi-history',    route: '/history'   },
 ];

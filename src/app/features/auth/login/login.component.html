@@ -1,5 +1,4 @@
 <div class="login">
-  <!-- Colonne gauche : formulaire -->
   <section class="login__form" aria-label="Authentication">
     <div class="login__form-inner">
       <div class="login__brand">
@@ -10,93 +9,97 @@
       <h1>Bienvenue</h1>
       <p class="login__subtitle">Connectez-vous ou créez un compte pour continuer.</p>
 
-      @if (error()) {
-        <p-message severity="error" [text]="error()!" styleClass="login__error" />
-      }
-
       <p-tabs value="login">
         <p-tablist>
           <p-tab value="login">Connexion</p-tab>
           <p-tab value="register">Créer un compte</p-tab>
         </p-tablist>
         <p-tabpanels>
-        <!-- ---- Connexion ---- -->
-        <p-tabpanel value="login">
-          <form (ngSubmit)="submitLogin()" class="login__fields">
-            <label>
-              <span>Email</span>
-              <input pInputText type="email" name="email" [(ngModel)]="email" autocomplete="email" required />
-            </label>
-            <label>
-              <span>Mot de passe</span>
-              <p-password
-                name="password"
-                [(ngModel)]="password"
-                [feedback]="false"
-                [toggleMask]="true"
-                autocomplete="current-password"
-                styleClass="w-full"
-                inputStyleClass="w-full"
-              />
-            </label>
-            <p-button
-              type="submit"
-              label="Se connecter"
-              icon="pi pi-sign-in"
-              [loading]="loading()"
-              styleClass="w-full"
-            />
-          </form>
-        </p-tabpanel>
 
-        <!-- ---- Création de compte ---- -->
-        <p-tabpanel value="register">
-          <form (ngSubmit)="submitRegister()" class="login__fields">
-            <label>
-              <span>Prénom</span>
-              <input pInputText name="rFirstName" [(ngModel)]="rFirstName" autocomplete="given-name" />
-            </label>
-            <label>
-              <span>Nom</span>
-              <input pInputText name="rLastName" [(ngModel)]="rLastName" autocomplete="family-name" />
-            </label>
-            <label>
-              <span>Email</span>
-              <input pInputText type="email" name="rEmail" [(ngModel)]="rEmail" autocomplete="email" required />
-            </label>
-            <label>
-              <span>Mot de passe</span>
-              <p-password
-                name="rPassword"
-                [(ngModel)]="rPassword"
-                [toggleMask]="true"
-                autocomplete="new-password"
-                styleClass="w-full"
-                inputStyleClass="w-full"
-              />
-            </label>
-            <p-button
-              type="submit"
-              label="Créer mon compte"
-              icon="pi pi-user-plus"
-              [loading]="loading()"
-              styleClass="w-full"
-            />
-          </form>
-        </p-tabpanel>
+          <!-- ---- Connexion ---- -->
+          <p-tabpanel value="login">
+            <form (ngSubmit)="submitLogin()" class="login__fields" novalidate>
+              <label>
+                <span>Email</span>
+                <input pInputText type="email"
+                  [value]="loginForm.email().value()"
+                  (input)="loginModel.update(m => ({ ...m, email: $any($event.target).value }))"
+                  [invalid]="loginForm.email().invalid() && loginForm.email().touched()"
+                  autocomplete="email" />
+              </label>
+              <label>
+                <span>Mot de passe</span>
+                <p-password
+                  [value]="loginForm.password().value()"
+                  (onInput)="loginModel.update(m => ({ ...m, password: $any($event.target).value }))"
+                  [invalid]="loginForm.password().invalid() && loginForm.password().touched()"
+                  [feedback]="false"
+                  [toggleMask]="true"
+                  autocomplete="current-password"
+                  styleClass="w-full"
+                  inputStyleClass="w-full" />
+              </label>
+              <p-button type="submit" label="Se connecter"
+                icon="pi pi-sign-in"
+                [loading]="loading()"
+                styleClass="w-full" />
+            </form>
+          </p-tabpanel>
+
+          <!-- ---- Création de compte ---- -->
+          <p-tabpanel value="register">
+            <form (ngSubmit)="submitRegister()" class="login__fields" novalidate>
+              <label>
+                <span>Prénom</span>
+                <input pInputText
+                  [value]="registerForm.firstName().value()"
+                  (input)="registerModel.update(m => ({ ...m, firstName: $any($event.target).value }))"
+                  [invalid]="registerForm.firstName().invalid() && registerForm.firstName().touched()"
+                  autocomplete="given-name" />
+              </label>
+              <label>
+                <span>Nom</span>
+                <input pInputText
+                  [value]="registerForm.lastName().value()"
+                  (input)="registerModel.update(m => ({ ...m, lastName: $any($event.target).value }))"
+                  [invalid]="registerForm.lastName().invalid() && registerForm.lastName().touched()"
+                  autocomplete="family-name" />
+              </label>
+              <label>
+                <span>Email</span>
+                <input pInputText type="email"
+                  [value]="registerForm.email().value()"
+                  (input)="registerModel.update(m => ({ ...m, email: $any($event.target).value }))"
+                  [invalid]="registerForm.email().invalid() && registerForm.email().touched()"
+                  autocomplete="email" />
+              </label>
+              <label>
+                <span>Mot de passe</span>
+                <p-password
+                  [value]="registerForm.password().value()"
+                  (onInput)="registerModel.update(m => ({ ...m, password: $any($event.target).value }))"
+                  [invalid]="registerForm.password().invalid() && registerForm.password().touched()"
+                  [toggleMask]="true"
+                  autocomplete="new-password"
+                  styleClass="w-full"
+                  inputStyleClass="w-full" />
+              </label>
+              <p-button type="submit" label="Créer mon compte"
+                icon="pi pi-user-plus"
+                [loading]="loading()"
+                styleClass="w-full" />
+            </form>
+          </p-tabpanel>
+
         </p-tabpanels>
       </p-tabs>
     </div>
   </section>
 
-  <!-- Colonne droite : pitch produit -->
   <aside class="login__pitch" aria-hidden="false">
     <div class="login__pitch-inner">
       <h2>L'app qui simplifie votre quotidien</h2>
-      <p>
-        Centralisez vos données, suivez votre activité et consultez votre historique
-        en un coup d'œil. Conçue pour les équipes Airbus.
-      </p>
+      <p>Centralisez vos données, suivez votre activité et consultez votre historique en un coup d'œil.</p>
       <ul>
         <li><i class="pi pi-check-circle"></i> Tableau de bord temps réel</li>
         <li><i class="pi pi-check-circle"></i> Suivi d'activité détaillé</li>

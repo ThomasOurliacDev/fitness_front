@@ -35,6 +35,8 @@
               }
             ],
             "styles": [
+              "node_modules/material-icons/iconfont/material-icons.css",
+              "node_modules/material-symbols/outlined.css",
               "src/styles.scss"
             ],
             "scripts": []
@@ -127,6 +129,8 @@
               }
             ],
             "styles": [
+              "node_modules/material-icons/iconfont/material-icons.css",
+              "node_modules/material-symbols/outlined.css",
               "src/styles.scss"
             ],
             "scripts": []

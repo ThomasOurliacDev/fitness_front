@@ -6,7 +6,7 @@ import { HttpClient } from '@angular/common/http';
 @Injectable({
   providedIn: 'root',
 })
-export class ProgramService {
+export class EntrainementService {
   protected apiUrl = environment.apiUrl;
   httpClient = inject(HttpClient);
 
