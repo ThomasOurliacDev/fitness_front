@@ -1,111 +1,60 @@
-<div class="login">
-  <section class="login__form" aria-label="Authentication">
-    <div class="login__form-inner">
-      <div class="login__brand">
-        <i class="pi pi-send"></i>
-        <span>Fitness App</span>
+<div class="container">
+  <div class="bloc">
+    <div class="form-container">
+       <div class="form-blob">
+      <img src="assets/images/blob.svg" alt="blob" class="blob-image blob-image--1" />
+      <img src="assets/images/blob.svg" alt="blob" class="blob-image blob-image--2" />
+      <img src="assets/images/blob.svg" alt="blob" class="blob-image blob-image--3" />
+    </div>
+
+    <div class="form-header">
+      <p>Please enter your details</p>
+      <h1>Welcome Back</h1>
+    </div>
+
+    <!-- Form goes next -->
+    <form class="form-box">
+      <div class="input-group">
+        <input type="email" id="email" class="input-field" placeholder="" required />
+        <label for="email" class="floating-label">Email address</label>
       </div>
-
-      <h1>Bienvenue</h1>
-      <p class="login__subtitle">Connectez-vous ou créez un compte pour continuer.</p>
-
-      <p-tabs value="login">
-        <p-tablist>
-          <p-tab value="login">Connexion</p-tab>
-          <p-tab value="register">Créer un compte</p-tab>
-        </p-tablist>
-        <p-tabpanels>
-
-          <!-- ---- Connexion ---- -->
-          <p-tabpanel value="login">
-            <form (ngSubmit)="submitLogin()" class="login__fields" novalidate>
-              <label>
-                <span>Email</span>
-                <input pInputText type="email"
-                  [value]="loginForm.email().value()"
-                  (input)="loginModel.update(m => ({ ...m, email: $any($event.target).value }))"
-                  [invalid]="loginForm.email().invalid() && loginForm.email().touched()"
-                  autocomplete="email" />
-              </label>
-              <label>
-                <span>Mot de passe</span>
-                <p-password
-                  [value]="loginForm.password().value()"
-                  (onInput)="loginModel.update(m => ({ ...m, password: $any($event.target).value }))"
-                  [invalid]="loginForm.password().invalid() && loginForm.password().touched()"
-                  [feedback]="false"
-                  [toggleMask]="true"
-                  autocomplete="current-password"
-                  styleClass="w-full"
-                  inputStyleClass="w-full" />
-              </label>
-              <p-button type="submit" label="Se connecter"
-                icon="pi pi-sign-in"
-                [loading]="loading()"
-                styleClass="w-full" />
-            </form>
-          </p-tabpanel>
-
-          <!-- ---- Création de compte ---- -->
-          <p-tabpanel value="register">
-            <form (ngSubmit)="submitRegister()" class="login__fields" novalidate>
-              <label>
-                <span>Prénom</span>
-                <input pInputText
-                  [value]="registerForm.firstName().value()"
-                  (input)="registerModel.update(m => ({ ...m, firstName: $any($event.target).value }))"
-                  [invalid]="registerForm.firstName().invalid() && registerForm.firstName().touched()"
-                  autocomplete="given-name" />
-              </label>
-              <label>
-                <span>Nom</span>
-                <input pInputText
-                  [value]="registerForm.lastName().value()"
-                  (input)="registerModel.update(m => ({ ...m, lastName: $any($event.target).value }))"
-                  [invalid]="registerForm.lastName().invalid() && registerForm.lastName().touched()"
-                  autocomplete="family-name" />
-              </label>
-              <label>
-                <span>Email</span>
-                <input pInputText type="email"
-                  [value]="registerForm.email().value()"
-                  (input)="registerModel.update(m => ({ ...m, email: $any($event.target).value }))"
-                  [invalid]="registerForm.email().invalid() && registerForm.email().touched()"
-                  autocomplete="email" />
-              </label>
-              <label>
-                <span>Mot de passe</span>
-                <p-password
-                  [value]="registerForm.password().value()"
-                  (onInput)="registerModel.update(m => ({ ...m, password: $any($event.target).value }))"
-                  [invalid]="registerForm.password().invalid() && registerForm.password().touched()"
-                  [toggleMask]="true"
-                  autocomplete="new-password"
-                  styleClass="w-full"
-                  inputStyleClass="w-full" />
-              </label>
-              <p-button type="submit" label="Créer mon compte"
-                icon="pi pi-user-plus"
-                [loading]="loading()"
-                styleClass="w-full" />
-            </form>
-          </p-tabpanel>
-
-        </p-tabpanels>
-      </p-tabs>
+      <div class="input-group">
+        <input type="password" id="password" class="input-field" placeholder="" required />
+        <label for="password" class="floating-label">Password</label>
+        <div class="eye-icon" onclick="togglePassword()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+            class="lucide lucide-eye-icon lucide-eye">
+            <path
+              d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        </div>
+      </div>
+      <div class="input-group checkbox-group">
+        <div class="form-col remember-me">
+          <input type="checkbox" id="remember-me-checkbox" class="checkbox-field" />
+          <label for="remember-me-checkbox">Remember me</label>
+        </div>
+        <div class="form-col">
+          <a href="#" class="form-link">Forgot password?</a>
+        </div>
+      </div>
+      <button type="submit" class="form-btn form-btn--submit">Sign In</button>
+      <p>Don't have an account? <a href="#" class="form-link">Sign up</a></p>
+    </form>
+  </div>
     </div>
-  </section>
+   
 
-  <aside class="login__pitch" aria-hidden="false">
-    <div class="login__pitch-inner">
-      <h2>L'app qui simplifie votre quotidien</h2>
-      <p>Centralisez vos données, suivez votre activité et consultez votre historique en un coup d'œil.</p>
-      <ul>
-        <li><i class="pi pi-check-circle"></i> Tableau de bord temps réel</li>
-        <li><i class="pi pi-check-circle"></i> Suivi d'activité détaillé</li>
-        <li><i class="pi pi-check-circle"></i> Historique consultable et exportable</li>
-        <li><i class="pi pi-check-circle"></i> Paramétrage fin par utilisateur</li>
-      </ul>
-    </div>
-  </aside>
+  <div class="bloc description">
+    <h2>L'app qui simplifie votre quotidien</h2>
+    <p>Centralisez vos données, suivez votre activité et consultez votre historique en un coup d'œil.</p>
+    <ul>
+      <li><i class="pi pi-check-circle"></i> Tableau de bord temps réel</li>
+      <li><i class="pi pi-check-circle"></i> Suivi d'activité détaillé</li>
+      <li><i class="pi pi-check-circle"></i> Historique consultable et exportable</li>
+      <li><i class="pi pi-check-circle"></i> Paramétrage fin par utilisateur</li>
+    </ul>
+  </div>
 </div>

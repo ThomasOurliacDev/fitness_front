@@ -1,10 +1,11 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { EntrainementService } from '../entrainement.service';
 
 @Component({
   selector: 'app-program',
   imports: [],
   templateUrl: './program.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './program.component.scss',
 })
 export class ProgramComponent implements OnInit {

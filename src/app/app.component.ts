@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ToastModule } from 'primeng/toast';
 
@@ -10,6 +10,7 @@ import { ToastModule } from 'primeng/toast';
     <router-outlet />
     <p-toast position="top-right" />
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`:host { display: block; height: 100vh; }`]
 })
 export class AppComponent {}

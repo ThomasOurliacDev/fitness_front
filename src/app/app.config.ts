@@ -6,14 +6,14 @@ import { MessageService } from 'primeng/api';
 
 import { routes } from './app.routes';
 import { AirbusPreset } from './theme/airbus-preset';
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
 import { authInterceptor } from './core/auth/auth.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideHttpClient(withInterceptors([authInterceptor])),
+    provideHttpClient(withXhr(), withInterceptors([authInterceptor])),
     provideAnimationsAsync(),
     // Fournit MessageService au niveau racine → un seul <p-toast> global suffit.
     MessageService,
