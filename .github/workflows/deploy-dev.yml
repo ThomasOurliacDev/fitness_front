@@ -1,0 +1,43 @@
+name: Deploy — DEV (frontend)
+
+on:
+  push:
+    branches: [develop]
+
+jobs:
+  deploy-dev:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build Angular (DEV)
+        run: npm run build -- --configuration=dev
+        env:
+          API_URL: ${{ secrets.NEXT_PUBLIC_API_URL_DEV }}
+
+      - name: Deploy sur Vercel DEV
+        run: |
+          npx vercel --token=${{ secrets.VERCEL_TOKEN }} \
+            --project=${{ secrets.VERCEL_PROJECT_ID_DEV }} \
+            --prod \
+            --yes
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+
+      - name: Créer tag dev-vX.Y.Z
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          TAG="dev-v${VERSION}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -f "$TAG"
+          git push origin "$TAG" --force
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
