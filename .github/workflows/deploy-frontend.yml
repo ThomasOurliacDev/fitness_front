@@ -1,4 +1,4 @@
-name: 'Continuous Deployment'
+name: '[CD] Deploy changes'
 
 on:
   push:
@@ -24,17 +24,38 @@ jobs:
           cache: 'npm'
 
       - run: npm ci --legacy-peer-deps
-  
+
+      - name: Set Vercel Project ID
+        id: vercel-project
+        run: |
+          if [[ '${{ github.ref }}' == 'refs/heads/develop' ]]; then
+            echo "id=${{ secrets.VERCEL_PROJECT_ID_DEV }}" >> $GITHUB_OUTPUT
+          elif [[ '${{ github.ref }}' == *'-rc.'* ]]; then
+            echo "id=${{ secrets.VERCEL_PROJECT_ID_INT }}" >> $GITHUB_OUTPUT
+          else
+            echo "id=${{ secrets.VERCEL_PROJECT_ID_PROD }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install Vercel CLI
+        run: npm i -g vercel@latest
+
+      - name: Pull Vercel project settings
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ steps.vercel-project.outputs.id }}
+        run: npx vercel pull --yes --environment=production --token=$VERCEL_TOKEN
+
       - name: Build for Vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ steps.vercel-project.outputs.id }}
-        run: vercel build --prod --token=$VERCEL_TOKEN
+        run: npx vercel build --prod --token=$VERCEL_TOKEN
 
       - name: Deploy to Vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ steps.vercel-project.outputs.id }}
-        run: vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN
+        run: npx vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN
