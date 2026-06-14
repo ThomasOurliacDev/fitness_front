@@ -14,7 +14,7 @@ export const AirbusPreset = definePreset(Aura, {
       200: '#94abc9',
       300: '#6889b2',
       400: '#3d6f9f',
-      500: '#00205B', // Airbus Blue
+      500: '#5b0000', // Airbus Blue
       600: '#001d52',
       700: '#001947',
       800: '#00153c',
