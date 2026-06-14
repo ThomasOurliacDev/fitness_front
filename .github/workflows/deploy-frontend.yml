@@ -1,72 +1,37 @@
-name: Deploy Frontend
-
-on:
-  push:
-    branches:
-      - develop          # DEV automatique à chaque merge
-    tags:
-      - 'v*.*.*-rc.*'    # INT automatique à chaque tag RC
-      - 'v*.*.*'         # PROD automatique à chaque tag release
-
 jobs:
-  resolve-env:
-    runs-on: ubuntu-latest
-    outputs:
-      environment: ${{ steps.set.outputs.environment }}
-      project_id: ${{ steps.set.outputs.project_id }}
-    steps:
-      - id: set
-        run: |
-          if [[ '${{ github.ref }}' == 'refs/heads/develop' ]]; then
-            echo 'environment=DEV' >> $GITHUB_OUTPUT
-            echo 'project_id=${{ secrets.VERCEL_PROJECT_ID_DEV }}' >> $GITHUB_OUTPUT
-          elif [[ '${{ github.ref }}' == *'-rc.'* ]]; then
-            echo 'environment=INT' >> $GITHUB_OUTPUT
-            echo 'project_id=${{ secrets.VERCEL_PROJECT_ID_INT }}' >> $GITHUB_OUTPUT
-          else
-            echo 'environment=PROD' >> $GITHUB_OUTPUT
-            echo 'project_id=${{ secrets.VERCEL_PROJECT_ID_PROD }}' >> $GITHUB_OUTPUT
-          fi
-
-  validate-tag:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Validate tag format
-        if: startsWith(github.ref, 'refs/tags/')
-        run: |
-          TAG=${GITHUB_REF#refs/tags/}
-          if [[ $TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$ ]]; then
-            echo 'Tag RC valide pour INT'
-          elif [[ $TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo 'Tag release valide pour PROD'
-          else
-            echo 'Format de tag invalide'; exit 1
-          fi
-
   deploy:
-    needs: [resolve-env, validate-tag]
     runs-on: ubuntu-latest
-    environment: ${{ needs.resolve-env.outputs.environment }}
+    environment: >-
+      ${{ github.ref == 'refs/heads/develop' && 'DEV'
+       || contains(github.ref, '-rc.') && 'INT'
+       || 'PROD' }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node 22
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+      - run: npm ci --legacy-peer-deps
+      - run: npm run build
 
-      - name: Build
-        run: npm run build
+      - name: Set Vercel Project ID
+        id: vercel-project
+        run: |
+          if [[ '${{ github.ref }}' == 'refs/heads/develop' ]]; then
+            echo "id=${{ secrets.VERCEL_PROJECT_ID_DEV }}" >> $GITHUB_OUTPUT
+          elif [[ '${{ github.ref }}' == *'-rc.'* ]]; then
+            echo "id=${{ secrets.VERCEL_PROJECT_ID_INT }}" >> $GITHUB_OUTPUT
+          else
+            echo "id=${{ secrets.VERCEL_PROJECT_ID_PROD }}" >> $GITHUB_OUTPUT
+          fi
 
       - name: Deploy to Vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ needs.resolve-env.outputs.project_id }}
+          VERCEL_PROJECT_ID: ${{ steps.vercel-project.outputs.id }}
         run: |
           npm i -g vercel
           vercel pull --yes --environment=production --token=$VERCEL_TOKEN
