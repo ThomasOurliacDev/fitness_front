@@ -24,25 +24,17 @@ jobs:
           cache: 'npm'
 
       - run: npm ci --legacy-peer-deps
-      - run: npm run build
-
-      - name: Set Vercel Project ID
-        id: vercel-project
-        run: |
-          if [[ '${{ github.ref }}' == 'refs/heads/develop' ]]; then
-            echo "id=${{ secrets.VERCEL_PROJECT_ID_DEV }}" >> $GITHUB_OUTPUT
-          elif [[ '${{ github.ref }}' == *'-rc.'* ]]; then
-            echo "id=${{ secrets.VERCEL_PROJECT_ID_INT }}" >> $GITHUB_OUTPUT
-          else
-            echo "id=${{ secrets.VERCEL_PROJECT_ID_PROD }}" >> $GITHUB_OUTPUT
-          fi
+  
+      - name: Build for Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ steps.vercel-project.outputs.id }}
+        run: vercel build --prod --token=$VERCEL_TOKEN
 
       - name: Deploy to Vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ steps.vercel-project.outputs.id }}
-        run: |
-          npm i -g vercel
-          vercel pull --yes --environment=production --token=$VERCEL_TOKEN
-          vercel deploy --prod --token=$VERCEL_TOKEN
+        run: vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN
