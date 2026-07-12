@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { ENVIRONMENT } from '../config/environment.token';
 import { firstValueFrom } from 'rxjs';
+import { ApiEnvelope } from '../api/api-envelope';
 
 
 export interface AuthUser {
@@ -40,43 +41,57 @@ export class AuthService {
     return `${user.firstName} ${user.lastName}`;
   });
 
-  /** Fake login (à brancher sur ton backend). */
-  async login(email: string, password: string) {
-    const res = await firstValueFrom(this.http.post<AuthResponse>(`${this.env.apiUrl}/auth/login`, { email, password }));
+  /**
+   * @param rememberMe true → la session survit à la fermeture du navigateur (localStorage),
+   *                   false → elle disparaît avec l'onglet (sessionStorage).
+   */
+  async login(email: string, password: string, rememberMe = false) {
+    const res = await firstValueFrom(this.http.post<ApiEnvelope<AuthResponse>>(`${this.env.apiUrl}/auth/login`, { email, password }));
 
-    this.setSession(res.user, res.accessToken);
+    this.setSession(res.data.user, res.data.accessToken, rememberMe);
   }
 
   async register(email: string, password: string, firstName: string, lastName: string): Promise<void> {
-    const res = await firstValueFrom(this.http.post<AuthResponse>(`${this.env.apiUrl}/auth/register`, { email, password, firstName, lastName }));
-    this.setSession(res.user, res.accessToken);
+    const res = await firstValueFrom(this.http.post<ApiEnvelope<AuthResponse>>(`${this.env.apiUrl}/auth/register`, { email, password, firstName, lastName }));
+    this.setSession(res.data.user, res.data.accessToken, false);
   }
 
   logout(): void {
     this._user.set(null);
     this._token.set(null);
-    try { sessionStorage.removeItem(USER_STORAGE_KEY); sessionStorage.removeItem(TOKEN_STORAGE_KEY); } catch { /* ignore */ }
+    try {
+      sessionStorage.removeItem(USER_STORAGE_KEY);
+      sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+      localStorage.removeItem(USER_STORAGE_KEY);
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+    } catch { /* ignore */ }
   }
 
   private readStoredUser(): AuthUser | null {
     try {
-      const raw = sessionStorage.getItem(USER_STORAGE_KEY);
+      // localStorage (remember me) prioritaire, sinon la session de l'onglet
+      const raw = localStorage.getItem(USER_STORAGE_KEY) ?? sessionStorage.getItem(USER_STORAGE_KEY);
       return raw ? JSON.parse(raw) as AuthUser : null;
     } catch { return null; }
   }
 
   private readStoredToken(): string | null {
     try {
-      return sessionStorage.getItem(TOKEN_STORAGE_KEY);
+      return localStorage.getItem(TOKEN_STORAGE_KEY) ?? sessionStorage.getItem(TOKEN_STORAGE_KEY);
     } catch { return null; }
   }
 
-  private setSession(user: AuthUser, token: string): void {
+  private setSession(user: AuthUser, token: string, rememberMe: boolean): void {
     this._user.set(user);
     this._token.set(token);
     try {
-      sessionStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
-      sessionStorage.setItem(TOKEN_STORAGE_KEY, token);
+      const target = rememberMe ? localStorage : sessionStorage;
+      const other = rememberMe ? sessionStorage : localStorage;
+      target.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+      target.setItem(TOKEN_STORAGE_KEY, token);
+      // On nettoie l'autre storage pour ne jamais avoir deux sessions en parallèle
+      other.removeItem(USER_STORAGE_KEY);
+      other.removeItem(TOKEN_STORAGE_KEY);
     } catch { /* ignore */ }
   }
 }

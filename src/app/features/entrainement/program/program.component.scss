@@ -1,0 +1,72 @@
+.programs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+
+  h2 {
+    margin: 0;
+  }
+}
+
+.programs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.program-card {
+  cursor: pointer;
+  border-radius: var(--app-radius-lg);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+}
+
+.muted {
+  color: var(--app-color-text-muted);
+}
+
+.description {
+  margin: 0 0 0.5rem;
+}
+
+.group-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+
+.created-at {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--app-color-text-muted);
+}
+
+.program-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-top: 0.5rem;
+
+  input,
+  textarea {
+    width: 100%;
+  }
+}
+
+.field-error {
+  color: var(--color-error);
+  font-size: 0.8rem;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}

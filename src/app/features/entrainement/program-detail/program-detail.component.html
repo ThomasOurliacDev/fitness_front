@@ -1,0 +1,222 @@
+<div class="detail-header">
+  <p-button icon="pi pi-arrow-left" [text]="true" severity="secondary" ariaLabel="Retour aux programmes" (onClick)="goBack()" />
+  <div class="detail-title">
+    <h2>{{ program()?.name ?? 'Programme' }}</h2>
+    @if (program()?.description) {
+      <p class="muted">{{ program()?.description }}</p>
+    }
+  </div>
+  <p-button label="Ajouter une séance" icon="pi pi-plus" (onClick)="openWorkoutDialog()" />
+</div>
+
+@if (loading()) {
+  <div class="workouts">
+    @for (placeholder of [1, 2]; track placeholder) {
+      <p-skeleton height="8rem" borderRadius="10px" />
+    }
+  </div>
+} @else if (program(); as prog) {
+  @if (!prog.workouts?.length) {
+    <p class="muted">Aucune séance dans ce programme. Commence par ajouter une séance (ex : « Push Day »).</p>
+  } @else {
+    <div class="workouts">
+      @for (workout of prog.workouts; track workout.id) {
+        <div class="workout-card">
+          <div class="workout-header" (click)="toggleWorkout(workout.id)">
+            <div class="workout-title">
+              <i class="pi pi-chevron-down workout-chevron" [class.collapsed]="isWorkoutCollapsed(workout.id)"></i>
+              <h3>{{ workout.name }}</h3>
+              <span class="muted workout-count">{{ workout.exercises?.length ?? 0 }} exercice(s)</span>
+            </div>
+            <div class="workout-actions">
+              <p-button label="Démarrer" icon="pi pi-play" size="small"
+                [loading]="startingWorkoutId() === workout.id"
+                [disabled]="!workout.exercises?.length"
+                (onClick)="startWorkoutSession(workout); $event.stopPropagation()" />
+              <p-button label="Ajouter un exercice" icon="pi pi-plus" size="small" [outlined]="true"
+                (onClick)="openExerciseDialog(workout); $event.stopPropagation()" />
+            </div>
+          </div>
+
+          @if (isWorkoutCollapsed(workout.id)) {
+            <!-- Séance repliée : on ne montre rien de plus -->
+          } @else if (!workout.exercises?.length) {
+            <p class="muted">Aucun exercice dans cette séance.</p>
+          } @else {
+            <div cdkDropList (cdkDropListDropped)="onGroupDrop(workout, $event)">
+              @for (group of workoutGroups(workout); track group.label) {
+                <div class="exercise-group" cdkDrag>
+                  <h4 class="exercise-group-heading">
+                    <span class="drag-handle" cdkDragHandle title="Glisser pour déplacer le groupe">
+                      <span class="material-symbols-outlined">drag_indicator</span>
+                    </span>
+                    {{ group.label }}
+                  </h4>
+                  <ul class="exercise-list" cdkDropList (cdkDropListDropped)="onExerciseDrop(workout, group.label, $event)">
+                    @for (workoutExercise of group.items; track workoutExercise.id) {
+                      <li class="exercise-item" cdkDrag>
+                        <span class="drag-handle" cdkDragHandle title="Glisser pour réordonner">
+                          <span class="material-symbols-outlined">drag_indicator</span>
+                        </span>
+                        <span class="exercise-order">{{ workoutExercise.order }}</span>
+                        <div class="exercise-info">
+                          <span class="exercise-name">{{ workoutExercise.exercise?.name }}</span>
+                          <span class="exercise-sets muted">
+                            @for (setTemplate of workoutExercise.sets ?? []; track setTemplate.id; let lastSet = $last) {
+                              @if (setTemplate.targetDuration != null) {
+                                {{ setTemplate.targetDuration }} s
+                              } @else {
+                                {{ setTemplate.targetReps ?? '?' }} reps
+                              }
+                              @if (setTemplate.targetWeight != null) {
+                                &#64; {{ setTemplate.targetWeight }} kg
+                              }
+                              ({{ setTemplate.restTime }}s repos){{ lastSet ? '' : ' · ' }}
+                            }
+                          </span>
+                        </div>
+                        <div class="exercise-actions">
+                          <p-button icon="pi pi-pencil" [text]="true" size="small" severity="secondary"
+                            ariaLabel="Modifier l'exercice"
+                            (onClick)="openEditExerciseDialog(workout, workoutExercise)" />
+                          <p-button icon="pi pi-trash" [text]="true" size="small" severity="danger"
+                            ariaLabel="Supprimer l'exercice de la séance"
+                            [loading]="deletingExerciseId() === workoutExercise.id"
+                            (onClick)="confirmDeleteExercise($event, workoutExercise)" />
+                        </div>
+                      </li>
+                    }
+                  </ul>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+}
+
+<!-- Dialog : ajouter une séance -->
+<p-dialog
+  header="Nouvelle séance"
+  [modal]="true"
+  [visible]="workoutDialogVisible()"
+  (visibleChange)="workoutDialogVisible.set($event)"
+  [style]="{ width: '26rem' }"
+>
+  <form class="dialog-form" [formGroup]="workoutForm" (ngSubmit)="onCreateWorkout()" novalidate>
+    <div class="form-field">
+      <p-floatlabel variant="on">
+        <input pInputText id="workout-name" formControlName="name" autocomplete="off"
+          [class.p-invalid]="workoutForm.get('name')?.invalid && workoutForm.get('name')?.touched" />
+        <label for="workout-name">Nom de la séance (ex : Push Day)</label>
+      </p-floatlabel>
+      @if (getFieldError(workoutForm, 'name'); as error) {
+        <small class="field-error">{{ error }}</small>
+      }
+    </div>
+
+    <div class="form-actions">
+      <p-button label="Annuler" severity="secondary" [text]="true" type="button" (onClick)="workoutDialogVisible.set(false)" />
+      <p-button label="Ajouter" type="submit" [loading]="savingWorkout()" />
+    </div>
+  </form>
+</p-dialog>
+
+<!-- Dialog : ajouter ou modifier un exercice avec ses séries planifiées -->
+<p-dialog
+  [header]="exerciseDialogHeader()"
+  [modal]="true"
+  [visible]="exerciseDialogVisible()"
+  (visibleChange)="exerciseDialogVisible.set($event)"
+  [style]="{ width: '34rem' }"
+>
+  <form class="dialog-form" [formGroup]="exerciseForm" (ngSubmit)="onSubmitExercise()" novalidate>
+    <div class="form-field">
+      <p-select
+        formControlName="exerciseId"
+        [options]="exerciseGroups()"
+        [group]="true"
+        optionGroupLabel="label"
+        optionGroupChildren="items"
+        optionLabel="name"
+        optionValue="id"
+        placeholder="Choisir un exercice"
+        [filter]="true"
+        filterBy="name"
+        [fluid]="true"
+        appendTo="body"
+        [invalid]="exerciseForm.get('exerciseId')?.invalid && exerciseForm.get('exerciseId')?.touched"
+      >
+        <ng-template let-group #group>
+          <span class="exercise-group-label">
+            @if (group.primary !== group.label) {
+              <span class="exercise-group-primary">{{ group.primary }}</span>
+              <i class="pi pi-angle-right"></i>
+            }
+            {{ group.label }}
+          </span>
+        </ng-template>
+        <ng-template let-exercise #item>
+          <div class="exercise-option">
+            <span>{{ exercise.name }}</span>
+            @if (exercise.type === 'BODYWEIGHT') {
+              <p-tag value="Poids du corps" severity="secondary" />
+            }
+          </div>
+        </ng-template>
+      </p-select>
+      @if (getFieldError(exerciseForm, 'exerciseId'); as error) {
+        <small class="field-error">{{ error }}</small>
+      }
+    </div>
+
+    @if (!isTimeBased()) {
+      <div class="form-field">
+        <label class="field-label" for="max-reps">Progression : reps max avant d'ajouter du poids</label>
+        <div class="progression-row">
+          <p-inputnumber inputId="max-reps" formControlName="maxReps" [min]="1" [max]="50" suffix=" reps"
+            [invalid]="exerciseForm.get('maxReps')?.invalid && exerciseForm.get('maxReps')?.touched" />
+          @if (selectedWeightIncrement(); as increment) {
+            <small class="progression-hint">Au plafond : +{{ increment }} kg</small>
+          }
+        </div>
+        @if (getFieldError(exerciseForm, 'maxReps'); as error) {
+          <small class="field-error">{{ error }}</small>
+        }
+      </div>
+    }
+
+    <div class="sets-editor" formArrayName="sets">
+      <div class="sets-header">
+        <span class="sets-title">Séries planifiées</span>
+        <p-button label="Série" icon="pi pi-plus" size="small" [text]="true" type="button" (onClick)="addSet()" />
+      </div>
+
+      @for (setGroup of setsArray.controls; track setGroup; let i = $index) {
+        <div class="set-row" [formGroupName]="i">
+          <span class="set-index">{{ i + 1 }}</span>
+          @if (isTimeBased()) {
+            <p-inputnumber formControlName="targetDuration" [min]="1" suffix=" s" placeholder="Durée" [fluid]="true" />
+          } @else {
+            <p-inputnumber formControlName="targetReps" [min]="1" suffix=" reps" placeholder="Reps" [fluid]="true" />
+          }
+          <p-inputnumber formControlName="targetWeight" [min]="0" [maxFractionDigits]="2" suffix=" kg" placeholder="Poids" [fluid]="true" />
+          <p-inputnumber formControlName="restTime" [min]="0" suffix=" s" placeholder="Repos" [fluid]="true" />
+          <p-button icon="pi pi-trash" severity="danger" [text]="true" type="button" ariaLabel="Supprimer la série"
+            [disabled]="setsArray.length === 1" (onClick)="removeSet(i)" />
+        </div>
+      }
+    </div>
+
+    <div class="form-actions">
+      <p-button label="Annuler" severity="secondary" [text]="true" type="button" (onClick)="exerciseDialogVisible.set(false)" />
+      <p-button [label]="editingExercise() ? 'Enregistrer' : 'Ajouter'" type="submit" [loading]="savingExercise()" />
+    </div>
+  </form>
+</p-dialog>
+
+<!-- Popup de confirmation (suppression d'un exercice de séance) -->
+<p-confirmpopup />
+

@@ -1,61 +1,136 @@
-name: '[CD] Deploy changes'
+name: Deploy Frontend
 
 on:
   push:
     branches:
-      - develop
+      - develop # push sur develop → déploiement automatique en DEV
     tags:
-      - 'v*.*.*-rc.*'
-      - 'v*.*.*'
+      - 'int-*'  # tag int-...  (ex: int-2026.07.12) → déploiement INT
+      - 'prod-*' # tag prod-... (ex: prod-v1.0.0)    → déploiement PROD
+  # Lancement manuel depuis l'onglet Actions, en choisissant la cible
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Environnement cible'
+        required: true
+        type: choice
+        options:
+          - dev
+          - int
+          - prod
+        default: dev
 
 jobs:
-  deploy:
+  # Traduit l'événement (branche / tag / manuel) en nom d'environnement GitHub
+  target:
     runs-on: ubuntu-latest
-    environment: >-
-      ${{ github.ref == 'refs/heads/develop' && 'DEV'
-       || contains(github.ref, '-rc.') && 'INT'
-       || 'PROD' }}
+    outputs:
+      env: ${{ steps.pick.outputs.env }}
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: 'npm'
-
-      - run: npm ci --legacy-peer-deps
-
-      - name: Set Vercel Project ID
-        id: vercel-project
+      - name: Déterminer l'environnement cible
+        id: pick
+        env:
+          EVENT: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+          INPUT_TARGET: ${{ inputs.target }}
         run: |
-          if [[ '${{ github.ref }}' == 'refs/heads/develop' ]]; then
-            echo "id=${{ secrets.VERCEL_PROJECT_ID_DEV }}" >> $GITHUB_OUTPUT
-          elif [[ '${{ github.ref }}' == *'-rc.'* ]]; then
-            echo "id=${{ secrets.VERCEL_PROJECT_ID_INT }}" >> $GITHUB_OUTPUT
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            echo "env=$(echo "$INPUT_TARGET" | tr '[:lower:]' '[:upper:]')" >> "$GITHUB_OUTPUT"
+          elif [[ "$REF" == refs/tags/prod-* ]]; then
+            echo "env=PROD" >> "$GITHUB_OUTPUT"
+          elif [[ "$REF" == refs/tags/int-* ]]; then
+            echo "env=INT" >> "$GITHUB_OUTPUT"
           else
-            echo "id=${{ secrets.VERCEL_PROJECT_ID_PROD }}" >> $GITHUB_OUTPUT
+            echo "env=DEV" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Install Vercel CLI
-        run: npm i -g vercel@latest
+  # On revalide le build du commit exact qui sera déployé
+  verify:
+    runs-on: ubuntu-latest
 
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci --legacy-peer-deps
+
+      - name: Build
+        run: npm run build
+
+  deploy:
+    needs: [target, verify]
+    runs-on: ubuntu-latest
+    # Les secrets Vercel sont lus dans l'environnement GitHub correspondant :
+    # Settings → Environments → DEV / INT / PROD
+    environment: ${{ needs.target.outputs.env }}
+    # Un seul déploiement à la fois par environnement ; un déploiement Vercel
+    # est atomique, on peut donc annuler l'ancien si un plus récent arrive
+    concurrency:
+      group: deploy-frontend-${{ needs.target.outputs.env }}
+      cancel-in-progress: true
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+
+    steps:
+      - name: Sélectionner le projet Vercel et vérifier les secrets
+        env:
+          TARGET: ${{ needs.target.outputs.env }}
+          ID_DEV: ${{ secrets.VERCEL_PROJECT_ID_DEV }}
+          ID_INT: ${{ secrets.VERCEL_PROJECT_ID_INT }}
+          ID_PROD: ${{ secrets.VERCEL_PROJECT_ID_PROD }}
+        run: |
+          case "$TARGET" in
+            DEV)  PROJECT_ID="$ID_DEV" ;;
+            INT)  PROJECT_ID="$ID_INT" ;;
+            PROD) PROJECT_ID="$ID_PROD" ;;
+          esac
+
+          missing=0
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "::error::Secret VERCEL_TOKEN manquant (Vercel → Account Settings → Tokens)."
+            missing=1
+          fi
+          if [ -z "$VERCEL_ORG_ID" ]; then
+            echo "::error::Secret VERCEL_ORG_ID manquant (fichier .vercel/project.json après « vercel link »)."
+            missing=1
+          fi
+          if [ -z "$PROJECT_ID" ]; then
+            echo "::error::Secret VERCEL_PROJECT_ID_$TARGET manquant."
+            missing=1
+          fi
+          [ $missing -eq 1 ] && exit 1
+
+          # Le project id devient dispo pour toutes les étapes suivantes
+          echo "VERCEL_PROJECT_ID=$PROJECT_ID" >> "$GITHUB_ENV"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci --legacy-peer-deps
+
+      # Récupère la config du projet Vercel ciblé (build command, output dir...)
       - name: Pull Vercel project settings
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ steps.vercel-project.outputs.id }}
-        run: npx vercel pull --yes --environment=production --token=$VERCEL_TOKEN
+        run: npx --yes vercel@latest pull --yes --environment=production --token="$VERCEL_TOKEN"
 
+      # Build avec la config du projet (chaque projet Vercel définit sa
+      # configuration Angular : dev / int / production)
       - name: Build for Vercel
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ steps.vercel-project.outputs.id }}
-        run: npx vercel build --prod --token=$VERCEL_TOKEN
+        run: npx --yes vercel@latest build --prod --token="$VERCEL_TOKEN"
 
       - name: Deploy to Vercel
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ steps.vercel-project.outputs.id }}
-        run: npx vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN
+        run: npx --yes vercel@latest deploy --prebuilt --prod --token="$VERCEL_TOKEN"

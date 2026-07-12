@@ -1,0 +1,316 @@
+:host {
+  display: block;
+}
+
+// Le padding du container de scroll (.layout__content), à compenser pour le full-bleed
+$content-padding: clamp(0.75rem, 2vw, 1.5rem);
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  // Reste collé en haut du container principal pendant le scroll
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--app-color-page);
+  border-bottom: 1px solid var(--app-color-surface-border);
+
+  // Full-bleed horizontal : on annule le padding latéral du container puis on
+  // le réintroduit, pour couvrir toute la largeur quand le contenu défile dessous.
+  // (Le container n'a plus de padding-top, le bandeau gère son propre espace haut.)
+  margin: 0 calc(-1 * #{$content-padding}) 1.25rem;
+  padding: 1rem $content-padding 0.75rem;
+
+  .detail-title {
+    flex: 1;
+
+    h2 {
+      margin: 0;
+    }
+
+    p {
+      margin: 0.25rem 0 0;
+    }
+  }
+}
+
+.muted {
+  color: var(--app-color-text-muted);
+}
+
+.workouts {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.workout-card {
+  background: var(--app-color-surface);
+  border: 1px solid var(--app-color-surface-border);
+  border-radius: var(--app-radius-lg);
+  padding: 1rem 1.25rem;
+
+  .workout-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+
+    h3 {
+      margin: 0;
+    }
+
+    .workout-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .workout-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .workout-count {
+      font-size: 0.85rem;
+    }
+
+    .workout-chevron {
+      font-size: 0.85rem;
+      color: var(--app-color-text-muted);
+      transition: transform 0.15s ease;
+
+      &.collapsed {
+        transform: rotate(-90deg);
+      }
+    }
+  }
+
+  // L'espace sous l'en-tête n'existe que quand la séance est ouverte
+  .workout-header:has(+ *) {
+    margin-bottom: 0.75rem;
+  }
+}
+
+.exercise-group {
+  background: var(--app-color-surface);
+
+  &:not(:last-child) {
+    margin-bottom: 0.75rem;
+  }
+
+  .exercise-group-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0 0 0.4rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--app-color-primary);
+  }
+}
+
+.drag-handle {
+  display: inline-flex;
+  align-items: center;
+  cursor: grab;
+  color: var(--app-color-text-muted);
+  opacity: 0.55;
+  transition: opacity 0.15s ease;
+
+  .material-symbols-outlined {
+    font-size: 20px;
+  }
+
+  &:hover {
+    opacity: 1;
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+// États du drag & drop (Angular CDK)
+.cdk-drag-preview {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  border-radius: var(--app-radius-md);
+  background: var(--app-color-surface);
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.3;
+}
+
+.cdk-drag-animating {
+  transition: transform 200ms ease;
+}
+
+.cdk-drop-list-dragging {
+  .exercise-item:not(.cdk-drag-placeholder),
+  .exercise-group:not(.cdk-drag-placeholder) {
+    transition: transform 200ms ease;
+  }
+}
+
+.exercise-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.exercise-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--app-color-surface-border);
+  border-radius: var(--app-radius-md);
+
+  .exercise-order {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--airbus-blue-50);
+    color: var(--app-color-primary);
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .exercise-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+
+    .exercise-name {
+      font-weight: 600;
+    }
+
+    .exercise-sets {
+      font-size: 0.85rem;
+    }
+  }
+
+  .exercise-actions {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+}
+
+.dialog-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-top: 0.5rem;
+
+  input {
+    width: 100%;
+  }
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+
+  .field-label {
+    margin-bottom: 0.35rem;
+    font-size: 0.85rem;
+    color: var(--app-color-text-muted);
+  }
+}
+
+// Champ "reps max" (surcharge progressive) : input + aide sur la même ligne
+.progression-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  .progression-hint {
+    font-size: 0.8rem;
+    color: var(--app-color-text-muted);
+    white-space: nowrap;
+  }
+}
+
+.field-error {
+  color: var(--color-error);
+  font-size: 0.8rem;
+  margin-top: 2px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.exercise-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 0.75rem;
+}
+
+.exercise-group-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 700;
+  color: var(--app-color-primary);
+
+  .exercise-group-primary {
+    font-weight: 400;
+    color: var(--app-color-text-muted);
+  }
+
+  .pi-angle-right {
+    font-size: 0.7rem;
+    color: var(--app-color-text-muted);
+  }
+}
+
+.sets-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  .sets-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .sets-title {
+      font-weight: 600;
+    }
+  }
+
+  .set-row {
+    display: grid;
+    grid-template-columns: 1.75rem 1fr 1fr 1fr auto;
+    align-items: center;
+    gap: 0.5rem;
+
+    .set-index {
+      text-align: center;
+      font-weight: 600;
+      color: var(--app-color-text-muted);
+    }
+  }
+}

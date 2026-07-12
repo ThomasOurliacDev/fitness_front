@@ -72,10 +72,19 @@
                 }
 
                 .form-btn {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
                     height: 48px;
                     border: none;
                     border-radius: 6px;
                     cursor: pointer;
+
+                    &:disabled {
+                        opacity: 0.7;
+                        cursor: not-allowed;
+                    }
 
                     &--submit {
                         margin-top: 20px;
@@ -93,9 +102,20 @@
 
                 .form-link {
                     color: var(--color-link);
+                    cursor: pointer;
 
                     &:hover {
                         text-decoration: none;
+                    }
+                }
+
+                // Prénom / Nom côte à côte sur le formulaire d'inscription
+                .form-row {
+                    display: flex;
+                    gap: 12px;
+
+                    > .form-field {
+                        flex: 1;
                     }
                 }
             }

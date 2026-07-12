@@ -1,0 +1,159 @@
+<div class="session-header">
+  <p-button icon="pi pi-arrow-left" [text]="true" severity="secondary" ariaLabel="Retour aux programmes" (onClick)="goBack()" />
+  <div class="session-title">
+    <h2>{{ session()?.workout?.name ?? 'Séance' }}</h2>
+    @if (session()) {
+      <span class="muted session-meta">
+        <i class="pi pi-clock"></i> {{ formatElapsed() }}
+        · {{ doneCount() }}/{{ totalCount() }} séries validées
+      </span>
+    }
+  </div>
+  @if (session()) {
+    <p-button label="Terminer la séance" icon="pi pi-flag" severity="danger" [outlined]="true"
+      [loading]="finishing()" (onClick)="finish()" />
+  }
+</div>
+
+@if (loading()) {
+  <div class="blocks">
+    @for (placeholder of [1, 2, 3]; track placeholder) {
+      <p-skeleton height="9rem" borderRadius="10px" />
+    }
+  </div>
+} @else if (!session()) {
+  <div class="empty-state">
+    <p class="muted">Aucune séance en cours. Lance une séance depuis un de tes programmes !</p>
+    <p-button label="Voir mes programmes" icon="pi pi-arrow-right" (onClick)="goBack()" />
+  </div>
+} @else {
+
+  <!-- ==================== PLAYER : la série en cours ==================== -->
+  @if (allDone()) {
+    <div class="player player--done">
+      <i class="pi pi-check-circle player__done-icon" aria-hidden="true"></i>
+      <h3>Toutes les séries sont faites 💪</h3>
+      <p class="muted">Il ne reste plus qu'à clôturer la séance.</p>
+      <p-button label="Terminer la séance" icon="pi pi-flag" severity="success"
+        [loading]="finishing()" (onClick)="finish()" />
+    </div>
+  } @else if (currentStep(); as step) {
+    <div class="player" [class.player--resting]="resting()">
+
+      @if (resting()) {
+        <!-- Mode repos : compte à rebours -->
+        <div class="player__rest">
+          <span class="rest-label"><i class="pi pi-hourglass" aria-hidden="true"></i> Repos</span>
+          <span class="rest-countdown">{{ formatRest() }}</span>
+          <div class="rest-bar" aria-hidden="true">
+            <div class="rest-bar__fill" [style.width.%]="restProgress()"></div>
+          </div>
+          <p class="muted rest-next">
+            Ensuite : <strong>{{ step.block.workoutExercise.exercise?.name }}</strong>
+            · série {{ step.setNumber }}/{{ step.setCount }} · {{ targetLabel(step) }}
+          </p>
+          <div class="player__actions">
+            <p-button label="+30 s" icon="pi pi-plus" severity="secondary" [outlined]="true" (onClick)="extendRest()" />
+            <p-button label="Passer le repos" icon="pi pi-step-forward" (onClick)="skipRest()" />
+          </div>
+        </div>
+      } @else {
+        <!-- Mode exercice : la série à faire maintenant -->
+        <div class="player__exercise">
+          <div class="player__heading">
+            <span class="player__set-chip">Série {{ step.setNumber }}/{{ step.setCount }}</span>
+            @if (step.block.workoutExercise.exercise; as exercise) {
+              <p-tag [value]="bodyPartLabel(exercise.bodyPart)" severity="info" />
+            }
+          </div>
+          <h3 class="player__exercise-name">{{ step.block.workoutExercise.exercise?.name }}</h3>
+          <p class="player__target">
+            Objectif : <strong>{{ targetLabel(step) }}</strong>
+            <span class="muted"> · {{ step.row.template.restTime }} s de repos ensuite</span>
+          </p>
+          @if (progressionBadge(step); as badge) {
+            <span class="player__progression" [class.player__progression--keep]="badge.kind === 'keep'">
+              <i [class]="badge.kind === 'up' ? 'pi pi-arrow-up-right' : 'pi pi-refresh'" aria-hidden="true"></i>
+              {{ badge.label }}
+            </span>
+          }
+
+          <div class="player__inputs">
+            @if (step.block.timeBased) {
+              <div class="player__input">
+                <label for="player-duration">Durée réalisée</label>
+                <p-inputnumber inputId="player-duration" [(ngModel)]="step.row.duration" [min]="0" suffix=" s" [fluid]="true" />
+              </div>
+            } @else {
+              <div class="player__input">
+                <label for="player-reps">Reps réalisées</label>
+                <p-inputnumber inputId="player-reps" [(ngModel)]="step.row.reps" [min]="0" suffix=" reps" [fluid]="true" />
+              </div>
+            }
+            <div class="player__input">
+              <label for="player-weight">Poids</label>
+              <p-inputnumber inputId="player-weight" [(ngModel)]="step.row.weight" [min]="0" [maxFractionDigits]="2" suffix=" kg" [fluid]="true" />
+            </div>
+          </div>
+
+          <div class="player__actions">
+            <p-button label="Raté" icon="pi pi-times" severity="danger" [outlined]="true"
+              [loading]="step.row.saving" (onClick)="validateSet(false)" />
+            <p-button label="Réussi" icon="pi pi-check" severity="success"
+              [loading]="step.row.saving" (onClick)="validateSet(true)" />
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ==================== Déroulé complet de la séance ==================== -->
+  <h4 class="overview-title muted">Déroulé de la séance</h4>
+  <div class="blocks">
+    @for (block of blocks(); track block.workoutExercise.id) {
+      <div class="exercise-card" [class.block-done]="isBlockDone(block)">
+        <div class="exercise-header">
+          <h3>{{ block.workoutExercise.exercise?.name }}</h3>
+          @if (block.workoutExercise.exercise; as exercise) {
+            <p-tag [value]="bodyPartLabel(exercise.bodyPart)" severity="info" />
+          }
+        </div>
+
+        <div class="set-rows">
+          @for (row of block.rows; track row.template.id; let i = $index) {
+            <button type="button" class="set-row"
+              [class.done]="row.done && row.done.success"
+              [class.failed]="row.done && !row.done.success"
+              [class.current]="isCurrentRow(row)"
+              [disabled]="!!row.done"
+              (click)="jumpToRow(row)"
+              [attr.aria-label]="row.done ? 'Série ' + (i + 1) + ' déjà validée' : 'Faire la série ' + (i + 1) + ' maintenant'">
+              <span class="set-index">{{ i + 1 }}</span>
+              <span class="set-target muted">
+                Objectif : {{ rowTarget(block, row) }} · {{ row.template.restTime }}s repos
+                @if (!row.done && hasProgressionUp(row)) {
+                  <i class="pi pi-arrow-up-right set-progress-icon" title="Progression vs la dernière séance" aria-hidden="true"></i>
+                }
+              </span>
+
+              @if (row.done) {
+                <span class="set-result" [class.set-result--failed]="!row.done.success">
+                  {{ doneLabel(block, row) }}
+                </span>
+                <span class="set-status-icon" [title]="row.done.success ? 'Série réussie' : 'Série ratée'">
+                  <i [class]="row.done.success ? 'pi pi-check-circle' : 'pi pi-times-circle'"></i>
+                </span>
+              } @else if (isCurrentRow(row)) {
+                <span class="set-result set-result--current">En cours</span>
+                <span class="set-status-icon set-status-icon--current"><i class="pi pi-play-circle"></i></span>
+              } @else {
+                <span class="set-result muted">À faire</span>
+                <span class="set-status-icon set-status-icon--pending"><i class="pi pi-angle-right"></i></span>
+              }
+            </button>
+          }
+        </div>
+      </div>
+    }
+  </div>
+}

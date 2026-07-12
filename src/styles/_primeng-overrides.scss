@@ -21,6 +21,18 @@
   input, textarea, .p-inputtext, .p-password, .p-password-input { width: 100%; }
 }
 
+// --- Curseur texte noir classique -------------------------------------------
+// Le I-beam natif de Windows peut devenir blanc/invisible au survol des inputs
+// (selon le schéma de pointeur du système). On le remplace par un I-beam SVG
+// noir classique.
+input,
+textarea,
+.p-inputtext,
+.p-password-input,
+.p-inputnumber-input {
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><g fill='none' stroke='black' stroke-width='1' stroke-linecap='round'><path d='M6 2h4M8 2.5v11M6 14h4'/></g></svg>") 8 8, text;
+}
+
 // --- Focus visible Airbus sur les CTA primaires ----------------------------
 .p-button:focus-visible {
   outline: 2px solid var(--airbus-blue);

@@ -12,3 +12,37 @@ html, body {
   color: var(--app-color-text);
   background: var(--app-color-page);
 }
+
+// --- Scrollbars : fines, sobres, à la couleur primaire ----------------------
+// Standard moderne (Chrome 121+, Firefox, Safari 18.2+) : piste invisible,
+// pouce en bleu primaire adouci.
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--app-color-primary) 55%, transparent) transparent;
+}
+
+// Fallback WebKit (anciens Chrome/Edge/Safari) : mêmes couleurs, avec un
+// état hover en primaire plein pour une meilleure préhension.
+@supports not (scrollbar-color: auto) {
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--app-color-primary) 55%, transparent);
+    border-radius: 999px;
+
+    &:hover {
+      background: var(--app-color-primary);
+    }
+  }
+
+  *::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}

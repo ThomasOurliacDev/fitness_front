@@ -1,1 +1,77 @@
-<p>program works!</p>
+<div class="programs-header">
+  <h2>Mes programmes</h2>
+  <p-button label="Nouveau programme" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+</div>
+
+@if (loading()) {
+  <div class="programs-grid" aria-label="Chargement des programmes">
+    @for (placeholder of [1, 2, 3]; track placeholder) {
+      <p-skeleton height="10rem" borderRadius="10px" />
+    }
+  </div>
+} @else if (programs().length === 0) {
+  <p class="muted">Aucun programme pour le moment. Crée ton premier programme !</p>
+} @else {
+  <div class="programs-grid">
+    @for (program of programs(); track program.id) {
+      <div class="program-card" role="button" tabindex="0" (click)="openProgram(program)" (keydown.enter)="openProgram(program)">
+        <p-card [header]="program.name" [subheader]="(program.workouts?.length ?? 0) + ' séance(s)'">
+          @if (program.description) {
+            <p class="description">{{ program.description }}</p>
+          }
+          @if (programGroups(program); as groups) {
+            @if (groups.length) {
+              <div class="group-tags">
+                @for (group of groups; track group) {
+                  <p-tag [value]="group" severity="info" />
+                }
+              </div>
+            }
+          }
+          <p class="created-at">Créé le {{ program.createdAt | date: 'dd/MM/yyyy' }}</p>
+        </p-card>
+      </div>
+    }
+  </div>
+}
+
+<p-dialog
+  header="Nouveau programme"
+  [modal]="true"
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [style]="{ width: '28rem' }"
+>
+  <form class="program-form" [formGroup]="programForm" (ngSubmit)="onCreate()" novalidate>
+    <div class="form-field">
+      <p-floatlabel variant="on">
+        <input
+          pInputText
+          id="program-name"
+          formControlName="name"
+          autocomplete="off"
+          [class.p-invalid]="programForm.get('name')?.invalid && programForm.get('name')?.touched"
+        />
+        <label for="program-name">Nom du programme</label>
+      </p-floatlabel>
+      @if (getFieldError('name'); as error) {
+        <small class="field-error">{{ error }}</small>
+      }
+    </div>
+
+    <div class="form-field">
+      <p-floatlabel variant="on">
+        <textarea pTextarea id="program-description" formControlName="description" rows="3"></textarea>
+        <label for="program-description">Description (optionnel)</label>
+      </p-floatlabel>
+      @if (getFieldError('description'); as error) {
+        <small class="field-error">{{ error }}</small>
+      }
+    </div>
+
+    <div class="form-actions">
+      <p-button label="Annuler" severity="secondary" [text]="true" type="button" (onClick)="dialogVisible.set(false)" />
+      <p-button label="Créer" type="submit" [loading]="saving()" />
+    </div>
+  </form>
+</p-dialog>

@@ -1,52 +1,137 @@
 <div class="container">
   <div class="bloc">
     <div class="form-container">
-      <div class="form-header">
-        <p>Please enter your details</p>
-        <h1>Welcome Back</h1>
-      </div>
-
-      <form class="form-box" (ngSubmit)="onLogin()" novalidate aria-label="Formulaire de connexion"
-        [formGroup]="loginForm">
-        <div class="form-field">
-          <p-floatlabel variant="on">
-            <input pInputText id="on_label"
-              [class.p-invalid]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
-              formControlName="email" autocomplete="off" />
-            <label for="on_label">Email</label>
-          </p-floatlabel>
-          @if (getFieldError(loginForm, 'email'); as error) {
-          <small class="field-error">{{ error }}</small>
-          }
+      @if (isLogin()) {
+        <div class="form-header">
+          <p>Please enter your details</p>
+          <h1>Welcome Back</h1>
         </div>
 
-
-        <div class="form-field">
-
-          <p-floatlabel variant="on">
-            <p-password formControlName="password" [toggleMask]="true" [feedback]="false" autocomplete="off"
-              [fluid]="true"
-              [invalid]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"></p-password>
-            <label for="on_label">Password</label>
-          </p-floatlabel>
-          @if (getFieldError(loginForm, 'password'); as error) {
-          <small class="field-error">{{ error }}</small>
-          }
-        </div>
-
-
-        <div class="input-group checkbox-group">
-          <div class="form-col remember-me">
-            <input type="checkbox" id="remember-me-checkbox" class="checkbox-field" />
-            <label for="remember-me-checkbox">Remember me</label>
+        <form class="form-box" (ngSubmit)="onLogin()" novalidate aria-label="Formulaire de connexion"
+          [formGroup]="loginForm">
+          <div class="form-field">
+            <p-floatlabel variant="on">
+              <input pInputText id="login-email"
+                [class.p-invalid]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+                formControlName="email" autocomplete="off" />
+              <label for="login-email">Email</label>
+            </p-floatlabel>
+            @if (getFieldError(loginForm, 'email'); as error) {
+            <small class="field-error">{{ error }}</small>
+            }
           </div>
-          <div class="form-col">
-            <a href="#" class="form-link">Forgot password?</a>
+
+
+          <div class="form-field">
+
+            <p-floatlabel variant="on">
+              <p-password formControlName="password" inputId="login-password" [toggleMask]="true" [feedback]="false" autocomplete="off"
+                [fluid]="true"
+                [invalid]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"></p-password>
+              <label for="login-password">Password</label>
+            </p-floatlabel>
+            @if (getFieldError(loginForm, 'password'); as error) {
+            <small class="field-error">{{ error }}</small>
+            }
           </div>
+
+
+          <div class="input-group checkbox-group">
+            <div class="form-col remember-me">
+              <input type="checkbox" id="remember-me-checkbox" class="checkbox-field" formControlName="rememberMe" />
+              <label for="remember-me-checkbox">Remember me</label>
+            </div>
+            <div class="form-col">
+              <a href="#" class="form-link">Forgot password?</a>
+            </div>
+          </div>
+          <button type="submit" class="form-btn form-btn--submit" [disabled]="isLoading()">
+            @if (isLoading()) {
+              <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+            }
+            Sign In
+          </button>
+          <p>Don't have an account? <a class="form-link" role="button" tabindex="0" (click)="switchView('register')">Sign up</a></p>
+        </form>
+      } @else {
+        <div class="form-header">
+          <p>Start tracking your workouts</p>
+          <h1>Create Account</h1>
         </div>
-        <button type="submit" class="form-btn form-btn--submit">Sign In</button>
-        <p>Don't have an account? <a href="#" class="form-link">Sign up</a></p>
-      </form>
+
+        <form class="form-box" (ngSubmit)="onRegister()" novalidate aria-label="Formulaire d'inscription"
+          [formGroup]="registerForm">
+          <div class="form-row">
+            <div class="form-field">
+              <p-floatlabel variant="on">
+                <input pInputText id="register-firstname"
+                  [class.p-invalid]="registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched"
+                  formControlName="firstName" autocomplete="off" />
+                <label for="register-firstname">Prénom</label>
+              </p-floatlabel>
+              @if (getFieldError(registerForm, 'firstName'); as error) {
+              <small class="field-error">{{ error }}</small>
+              }
+            </div>
+
+            <div class="form-field">
+              <p-floatlabel variant="on">
+                <input pInputText id="register-lastname"
+                  [class.p-invalid]="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched"
+                  formControlName="lastName" autocomplete="off" />
+                <label for="register-lastname">Nom</label>
+              </p-floatlabel>
+              @if (getFieldError(registerForm, 'lastName'); as error) {
+              <small class="field-error">{{ error }}</small>
+              }
+            </div>
+          </div>
+
+          <div class="form-field">
+            <p-floatlabel variant="on">
+              <input pInputText id="register-email"
+                [class.p-invalid]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
+                formControlName="email" autocomplete="off" />
+              <label for="register-email">Email</label>
+            </p-floatlabel>
+            @if (getFieldError(registerForm, 'email'); as error) {
+            <small class="field-error">{{ error }}</small>
+            }
+          </div>
+
+          <div class="form-field">
+            <p-floatlabel variant="on">
+              <p-password formControlName="password" inputId="register-password" [toggleMask]="true" [feedback]="false" autocomplete="off"
+                [fluid]="true"
+                [invalid]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"></p-password>
+              <label for="register-password">Password</label>
+            </p-floatlabel>
+            @if (getFieldError(registerForm, 'password'); as error) {
+            <small class="field-error">{{ error }}</small>
+            }
+          </div>
+
+          <div class="form-field">
+            <p-floatlabel variant="on">
+              <p-password formControlName="confirmPassword" inputId="register-confirm-password" [toggleMask]="true" [feedback]="false" autocomplete="off"
+                [fluid]="true"
+                [invalid]="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched"></p-password>
+              <label for="register-confirm-password">Confirm password</label>
+            </p-floatlabel>
+            @if (getFieldError(registerForm, 'confirmPassword'); as error) {
+            <small class="field-error">{{ error }}</small>
+            }
+          </div>
+
+          <button type="submit" class="form-btn form-btn--submit" [disabled]="isLoading()">
+            @if (isLoading()) {
+              <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+            }
+            Sign Up
+          </button>
+          <p>Already have an account? <a class="form-link" role="button" tabindex="0" (click)="switchView('login')">Sign in</a></p>
+        </form>
+      }
     </div>
   </div>
 

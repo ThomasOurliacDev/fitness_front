@@ -14,14 +14,18 @@
     display: flex;
     flex-direction: column;
     min-width: 0; // empêche l'overflow horizontal
+    min-height: 0; // autorise le rétrécissement dans la grille → le scroll reste interne
+    overflow: hidden; // navbar et sidebar restent fixes, seul __content scrolle
     background: var(--app-color-page);
   }
 
   &__content {
     flex: 1;
+    min-height: 0; // sans ça, le contenu long pousse la grille au-delà de 100dvh
     overflow: auto;
-    // Padding fluide : 0.75rem (mobile) → 1.5rem (desktop)
-    padding: clamp(0.75rem, 2vw, 1.5rem);
+    // Padding fluide : 0.75rem (mobile) → 1.5rem (desktop).
+    // Pas de padding-top : il créait une bande vide visible au scroll.
+    padding: 0 clamp(0.75rem, 2vw, 1.5rem) clamp(0.75rem, 2vw, 1.5rem);
   }
 }
 
