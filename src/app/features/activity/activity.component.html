@@ -1,0 +1,96 @@
+<div class="activity-header">
+  <h2>Activité</h2>
+</div>
+
+@if (loading()) {
+  <div class="stat-cards">
+    @for (placeholder of [1, 2, 3, 4]; track placeholder) {
+      <p-skeleton height="6rem" borderRadius="10px" />
+    }
+  </div>
+} @else if (stats(); as s) {
+  <div class="stat-cards">
+    <p-card styleClass="stat-card">
+      <span class="stat-value">{{ s.totalSessions }}</span>
+      <span class="stat-label">Séances terminées</span>
+    </p-card>
+    <p-card styleClass="stat-card">
+      <span class="stat-value">{{ formatTotalDuration() }}</span>
+      <span class="stat-label">Temps total d'entraînement</span>
+    </p-card>
+    <p-card styleClass="stat-card">
+      <span class="stat-value">{{ s.sessionsLast7Days }}</span>
+      <span class="stat-label">Séances — 7 derniers jours</span>
+    </p-card>
+    <p-card styleClass="stat-card">
+      <span class="stat-value">{{ s.sessionsLast30Days }}</span>
+      <span class="stat-label">Séances — 30 derniers jours</span>
+    </p-card>
+  </div>
+
+  <h3 class="section-title">Répartition par groupe musculaire</h3>
+  <p class="muted section-hint">Nombre de séries effectuées sur les 90 derniers jours ({{ s.totalSetsLast90Days }} au total).</p>
+
+  @if (bodyPartRows().length === 0) {
+    <p class="muted">Pas encore de séries enregistrées sur cette période.</p>
+  } @else {
+    <div class="breakdown">
+      @for (row of bodyPartRows(); track row.label) {
+        <div class="breakdown-row">
+          <span class="breakdown-label">{{ row.label }}</span>
+          <div class="breakdown-bar" aria-hidden="true">
+            <div class="breakdown-bar__fill" [style.width.%]="row.percent"></div>
+          </div>
+          <span class="breakdown-value muted">{{ row.count }} ({{ row.percent }}%)</span>
+        </div>
+      }
+    </div>
+  }
+} @else {
+  <p class="muted">Impossible de charger tes statistiques pour le moment.</p>
+}
+
+<h3 class="section-title progress-title">Suivi des performances</h3>
+<p class="muted section-hint">Compare la progression de plusieurs exercices sur le graphique.</p>
+
+@if (loadingExercises()) {
+  <p-skeleton height="3rem" borderRadius="10px" />
+} @else if (loggedExercises().length === 0) {
+  <p class="muted">Termine au moins une séance pour voir tes exercices apparaître ici.</p>
+} @else {
+  <div class="progress-controls">
+    <p-multiselect
+      [options]="loggedExercises()"
+      optionLabel="name"
+      optionValue="id"
+      [ngModel]="selectedExerciseIds()"
+      (onChange)="onExerciseSelectionChange($event)"
+      (onPanelHide)="onExercisePanelHide()"
+      placeholder="Choisir un ou plusieurs exercices"
+      [filter]="true"
+      filterBy="name"
+      display="chip"
+      [fluid]="true"
+      appendTo="body"
+      styleClass="progress-exercise-select"
+    />
+    <p-select
+      [options]="metricOptions"
+      optionLabel="label"
+      optionValue="value"
+      [ngModel]="selectedMetric()"
+      (ngModelChange)="onMetricChange($event)"
+      [fluid]="true"
+      appendTo="body"
+      styleClass="progress-metric-select"
+    />
+  </div>
+
+  @if (selectedExerciseIds().length === 0) {
+    <p class="muted">Choisis un ou plusieurs exercices pour voir leur progression.</p>
+  } @else if (loadingProgress()) {
+    <p-skeleton height="22rem" borderRadius="10px" />
+  } @else {
+    <app-performance-chart [labels]="chartLabels()" [series]="chartSeries()" [unit]="chartUnit()" />
+  }
+}

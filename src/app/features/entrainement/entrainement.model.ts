@@ -25,6 +25,16 @@ export function bodyPartLabel(bodyPart: string): string {
   return BODY_PART_LABELS[bodyPart] ?? bodyPart;
 }
 
+/** Formate une durée en secondes en "mm:ss" (ou "h:mm:ss" au-delà d'une heure). */
+export function formatDuration(totalSeconds: number): string {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = Math.floor(totalSeconds % 60);
+  const mm = minutes.toString().padStart(2, '0');
+  const ss = seconds.toString().padStart(2, '0');
+  return hours > 0 ? `${hours}:${mm}:${ss}` : `${mm}:${ss}`;
+}
+
 /** Famille (groupe primaire) de chaque groupe musculaire fin. */
 export const PRIMARY_GROUPS: Record<string, string> = {
   CHEST: 'Pectoraux',
@@ -206,3 +216,86 @@ export interface CreateSetPayload {
   order: number;
   success?: boolean;
 }
+
+// ==========================================
+// HISTORIQUE & ACTIVITÉ
+// ==========================================
+
+/** Une série d'une séance passée, avec le détail de l'exercice (GET /workout-sessions/history). */
+export interface HistorySet {
+  id: string;
+  exerciseId: string;
+  exercise: { name: string; bodyPart: string; measure: 'REPS' | 'TIME' };
+  reps: number | null;
+  duration: number | null;
+  weight: number | null;
+  restTime: number;
+  order: number;
+  success: boolean;
+}
+
+/**
+ * Une séance terminée dans l'historique. `workout` est `null` si la séance
+ * planifiée (ou son programme) a depuis été supprimée — l'historique survit
+ * volontairement à cette suppression.
+ */
+export interface HistorySession {
+  id: string;
+  date: string;
+  duration: number | null;
+  workout: { name: string; program: { name: string } } | null;
+  sets: HistorySet[];
+}
+
+/** Statistiques agrégées de l'utilisateur (GET /workout-sessions/stats). */
+export interface SessionStats {
+  totalSessions: number;
+  totalDurationSeconds: number;
+  sessionsLast7Days: number;
+  sessionsLast30Days: number;
+  totalSetsLast90Days: number;
+  totalVolumeLast90Days: number;
+  /** Nombre de séries par groupe musculaire (code brut, ex: 'CHEST'), 90 derniers jours. */
+  bodyPartBreakdownLast90Days: Record<string, number>;
+}
+
+// ==========================================
+// SUIVI DE PERFORMANCE (graphique de progression)
+// ==========================================
+
+/** Un exercice déjà réalisé au moins une fois (GET /workout-sessions/logged-exercises). */
+export interface LoggedExercise {
+  id: string;
+  name: string;
+  bodyPart: string;
+  measure: 'REPS' | 'TIME';
+}
+
+/** Les métriques calculées côté back pour une séance donnée d'un exercice. */
+export interface ExerciseProgressPoint {
+  date: string;
+  maxWeight: number | null;
+  totalVolume: number | null;
+  estimatedOneRm: number | null;
+  totalReps: number | null;
+  maxDuration: number | null;
+}
+
+/** L'historique de performance d'un exercice (GET /workout-sessions/exercise-progress). */
+export interface ExerciseProgress {
+  exerciseId: string;
+  exerciseName: string;
+  measure: 'REPS' | 'TIME';
+  points: ExerciseProgressPoint[];
+}
+
+/** Les métriques sélectionnables dans le graphique de progression. */
+export type ProgressMetric = 'maxWeight' | 'totalVolume' | 'estimatedOneRm' | 'totalReps' | 'maxDuration';
+
+export const PROGRESS_METRIC_OPTIONS: { label: string; value: ProgressMetric; unit: string }[] = [
+  { label: 'Poids max', value: 'maxWeight', unit: 'kg' },
+  { label: '1RM estimé', value: 'estimatedOneRm', unit: 'kg' },
+  { label: 'Volume total', value: 'totalVolume', unit: 'kg' },
+  { label: 'Répétitions totales', value: 'totalReps', unit: 'reps' },
+  { label: 'Durée max', value: 'maxDuration', unit: 's' },
+];

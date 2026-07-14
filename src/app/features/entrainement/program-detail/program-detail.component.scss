@@ -235,6 +235,13 @@ $content-padding: clamp(0.75rem, 2vw, 1.5rem);
   }
 }
 
+// Dialog cardio : répétitions / effort / récupération sur une même ligne
+.cardio-intervals-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
 // Champ "reps max" (surcharge progressive) : input + aide sur la même ligne
 .progression-row {
   display: flex;

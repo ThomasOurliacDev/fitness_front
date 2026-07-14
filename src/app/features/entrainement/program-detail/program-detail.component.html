@@ -35,6 +35,12 @@
                 (onClick)="startWorkoutSession(workout); $event.stopPropagation()" />
               <p-button label="Ajouter un exercice" icon="pi pi-plus" size="small" [outlined]="true"
                 (onClick)="openExerciseDialog(workout); $event.stopPropagation()" />
+              <p-button label="Ajouter un cardio" icon="pi pi-stopwatch" size="small" [outlined]="true"
+                (onClick)="openCardioDialog(workout); $event.stopPropagation()" />
+              <p-button icon="pi pi-trash" [text]="true" size="small" severity="danger"
+                ariaLabel="Supprimer la séance"
+                [loading]="deletingWorkoutId() === workout.id"
+                (onClick)="confirmDeleteWorkout($event, workout)" />
             </div>
           </div>
 
@@ -62,23 +68,27 @@
                         <div class="exercise-info">
                           <span class="exercise-name">{{ workoutExercise.exercise?.name }}</span>
                           <span class="exercise-sets muted">
-                            @for (setTemplate of workoutExercise.sets ?? []; track setTemplate.id; let lastSet = $last) {
-                              @if (setTemplate.targetDuration != null) {
-                                {{ setTemplate.targetDuration }} s
-                              } @else {
-                                {{ setTemplate.targetReps ?? '?' }} reps
+                            @if (workoutExercise.exercise?.type === 'CARDIO') {
+                              {{ cardioSummary(workoutExercise) }}
+                            } @else {
+                              @for (setTemplate of workoutExercise.sets ?? []; track setTemplate.id; let lastSet = $last) {
+                                @if (setTemplate.targetDuration != null) {
+                                  {{ setTemplate.targetDuration }} s
+                                } @else {
+                                  {{ setTemplate.targetReps ?? '?' }} reps
+                                }
+                                @if (setTemplate.targetWeight != null) {
+                                  &#64; {{ setTemplate.targetWeight }} kg
+                                }
+                                ({{ setTemplate.restTime }}s repos){{ lastSet ? '' : ' · ' }}
                               }
-                              @if (setTemplate.targetWeight != null) {
-                                &#64; {{ setTemplate.targetWeight }} kg
-                              }
-                              ({{ setTemplate.restTime }}s repos){{ lastSet ? '' : ' · ' }}
                             }
                           </span>
                         </div>
                         <div class="exercise-actions">
                           <p-button icon="pi pi-pencil" [text]="true" size="small" severity="secondary"
                             ariaLabel="Modifier l'exercice"
-                            (onClick)="openEditExerciseDialog(workout, workoutExercise)" />
+                            (onClick)="editExercise(workout, workoutExercise)" />
                           <p-button icon="pi pi-trash" [text]="true" size="small" severity="danger"
                             ariaLabel="Supprimer l'exercice de la séance"
                             [loading]="deletingExerciseId() === workoutExercise.id"
@@ -217,6 +227,73 @@
   </form>
 </p-dialog>
 
-<!-- Popup de confirmation (suppression d'un exercice de séance) -->
+<!-- Dialog dédié : ajouter ou modifier un cardio (continu ou fractionné) -->
+<p-dialog
+  [header]="cardioDialogHeader()"
+  [modal]="true"
+  [visible]="cardioDialogVisible()"
+  (visibleChange)="cardioDialogVisible.set($event)"
+  [style]="{ width: '30rem' }"
+>
+  <form class="dialog-form" [formGroup]="cardioForm" (ngSubmit)="onSubmitCardio()" novalidate>
+    <div class="form-field">
+      <p-select
+        formControlName="exerciseId"
+        [options]="cardioExercises()"
+        optionLabel="name"
+        optionValue="id"
+        placeholder="Choisir un exercice cardio"
+        [filter]="true"
+        filterBy="name"
+        [fluid]="true"
+        appendTo="body"
+        [invalid]="cardioForm.get('exerciseId')?.invalid && cardioForm.get('exerciseId')?.touched"
+      />
+      @if (getFieldError(cardioForm, 'exerciseId'); as error) {
+        <small class="field-error">{{ error }}</small>
+      }
+    </div>
+
+    <div class="form-field">
+      <label class="field-label">Type de séance</label>
+      <p-selectbutton formControlName="mode" [options]="cardioModeOptions" optionLabel="label" optionValue="value" [allowEmpty]="false" />
+    </div>
+
+    @if (!isCardioIntervals()) {
+      <div class="form-field">
+        <label class="field-label" for="cardio-continuous-minutes">Durée de l'effort</label>
+        <p-inputnumber inputId="cardio-continuous-minutes" formControlName="continuousMinutes" [min]="1" suffix=" min" [fluid]="true" />
+        @if (getFieldError(cardioForm, 'continuousMinutes'); as error) {
+          <small class="field-error">{{ error }}</small>
+        }
+      </div>
+    } @else {
+      <div class="cardio-intervals-row">
+        <div class="form-field">
+          <label class="field-label" for="cardio-rounds">Répétitions</label>
+          <p-inputnumber inputId="cardio-rounds" formControlName="rounds" [min]="1" [max]="50" [fluid]="true" />
+        </div>
+        <div class="form-field">
+          <label class="field-label" for="cardio-effort">Effort</label>
+          <p-inputnumber inputId="cardio-effort" formControlName="effortSeconds" [min]="1" suffix=" s" [fluid]="true" />
+        </div>
+        <div class="form-field">
+          <label class="field-label" for="cardio-recovery">Récupération</label>
+          <p-inputnumber inputId="cardio-recovery" formControlName="recoverySeconds" [min]="0" suffix=" s" [fluid]="true" />
+        </div>
+      </div>
+      @if (getFieldError(cardioForm, 'rounds'); as error) {
+        <small class="field-error">{{ error }}</small>
+      }
+    }
+
+    <div class="form-actions">
+      <p-button label="Annuler" severity="secondary" [text]="true" type="button" (onClick)="cardioDialogVisible.set(false)" />
+      <p-button [label]="editingCardioExercise() ? 'Enregistrer' : 'Ajouter'" type="submit" [loading]="savingCardio()" />
+    </div>
+  </form>
+</p-dialog>
+
+<!-- Popup de confirmation (suppression d'un exercice ou d'une séance) -->
 <p-confirmpopup />
 

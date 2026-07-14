@@ -1,4 +1,16 @@
-# Poc
+# Fitness App — Frontend
+
+Application Angular de suivi de musculation (programmes, séances, exécution avec surcharge
+progressive). Consomme l'API du repo `fitness_back`.
+
+## 📚 Documentation
+
+- [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) — organisation du code, auth (remember me), player de séance, drag & drop
+- [docs/LOCAL_DEV.md](./docs/LOCAL_DEV.md) — démarrer en local, configurations de build
+- [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) — les 3 environnements Vercel, le pipeline CI/CD, déployer en INT/PROD
+- [docs/HOTFIX.md](./docs/HOTFIX.md) — corriger un bug critique en production
+
+---
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.1.
 

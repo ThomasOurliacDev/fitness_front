@@ -16,6 +16,7 @@
 }
 
 .program-card {
+  position: relative;
   cursor: pointer;
   border-radius: var(--app-radius-lg);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -24,6 +25,13 @@
   &:focus-visible {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  ::ng-deep .delete-program-btn {
+    position: absolute;
+    top: 0.65rem;
+    right: 0.65rem;
+    z-index: 1;
   }
 }
 

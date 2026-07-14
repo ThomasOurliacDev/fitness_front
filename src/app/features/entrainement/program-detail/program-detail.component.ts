@@ -10,6 +10,7 @@ import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { SelectModule } from 'primeng/select';
+import { SelectButtonModule } from 'primeng/selectbutton';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
@@ -47,6 +48,7 @@ interface WorkoutExerciseGroup {
     InputTextModule,
     InputNumberModule,
     SelectModule,
+    SelectButtonModule,
     FloatLabelModule,
     SkeletonModule,
     TagModule,
@@ -101,6 +103,9 @@ export class ProgramDetailComponent implements OnInit {
       .sort((a, b) => primaryRank(a.primary) - primaryRank(b.primary) || a.label.localeCompare(b.label));
   });
 
+  /** Le catalogue cardio (Course à pied, Rameur, Vélo...) pour le formulaire dédié. */
+  readonly cardioExercises = computed(() => this.exercises().filter((exercise) => exercise.type === 'CARDIO'));
+
   private programId = '';
 
   // --- Dialog "Ajouter une séance" ---
@@ -129,6 +134,27 @@ export class ProgramDetailComponent implements OnInit {
   get setsArray(): FormArray {
     return this.exerciseForm.get('sets') as FormArray;
   }
+
+  // --- Dialog dédié "Ajouter / Modifier un cardio" ---
+  readonly cardioDialogVisible = signal(false);
+  readonly savingCardio = signal(false);
+  /** Le WorkoutExercise cardio en cours d'édition (null = mode ajout). */
+  readonly editingCardioExercise = signal<WorkoutExercise | null>(null);
+
+  readonly cardioForm: FormGroup = this.fb.group({
+    exerciseId: [null as string | null, Validators.required],
+    // 'continuous' : un seul effort continu ; 'intervals' : N répétitions effort/récup
+    mode: ['continuous' as 'continuous' | 'intervals', Validators.required],
+    continuousMinutes: [20, [Validators.required, Validators.min(1)]],
+    rounds: [6, [Validators.required, Validators.min(1), Validators.max(50)]],
+    effortSeconds: [45, [Validators.required, Validators.min(1)]],
+    recoverySeconds: [15, [Validators.required, Validators.min(0)]],
+  });
+
+  readonly cardioModeOptions = [
+    { label: 'Continu', value: 'continuous' as const },
+    { label: 'Fractionné', value: 'intervals' as const },
+  ];
 
   ngOnInit(): void {
     this.programId = this.route.snapshot.paramMap.get('id') ?? '';
@@ -206,6 +232,41 @@ export class ProgramDetailComponent implements OnInit {
           this.router.navigate(['/entrainement/session']);
         } else {
           this.toaster.error('Séance', 'Impossible de démarrer la séance.');
+        }
+      },
+    });
+  }
+
+  // --- Séances (suppression) ---
+
+  readonly deletingWorkoutId = signal<string | null>(null);
+
+  confirmDeleteWorkout(event: Event, workout: Workout): void {
+    event.stopPropagation();
+    this.confirmationService.confirm({
+      target: event.currentTarget as EventTarget,
+      message: `Supprimer la séance « ${workout.name} » et tous ses exercices ?`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptButtonProps: { label: 'Supprimer', severity: 'danger' },
+      rejectButtonProps: { label: 'Annuler', severity: 'secondary', text: true },
+      accept: () => this.deleteWorkout(workout),
+    });
+  }
+
+  private deleteWorkout(workout: Workout): void {
+    this.deletingWorkoutId.set(workout.id);
+    this.entrainementService.deleteWorkout(workout.id).subscribe({
+      next: () => {
+        this.deletingWorkoutId.set(null);
+        this.toaster.success('Séance supprimée', `« ${workout.name} » a été supprimée.`);
+        this.loadProgram();
+      },
+      error: (err: unknown) => {
+        this.deletingWorkoutId.set(null);
+        if (err instanceof HttpErrorResponse && err.status === 409) {
+          this.toaster.warn('Séance en cours', 'Termine la séance en cours avant de supprimer cette séance planifiée.');
+        } else {
+          this.toaster.error('Séances', 'La suppression a échoué.');
         }
       },
     });
@@ -462,6 +523,125 @@ export class ProgramDetailComponent implements OnInit {
         this.toaster.error('Exercices', editing ? 'La modification a échoué.' : "L'ajout de l'exercice a échoué.");
       },
     });
+  }
+
+  // --- Cardio : dialog dédié ---
+
+  /** Le crayon d'un exercice route vers le bon dialog selon le type de l'exercice. */
+  editExercise(workout: Workout, workoutExercise: WorkoutExercise): void {
+    if (workoutExercise.exercise?.type === 'CARDIO') {
+      this.openEditCardioDialog(workout, workoutExercise);
+    } else {
+      this.openEditExerciseDialog(workout, workoutExercise);
+    }
+  }
+
+  openCardioDialog(workout: Workout): void {
+    this.targetWorkout = workout;
+    this.editingCardioExercise.set(null);
+    this.cardioForm.reset({
+      exerciseId: null,
+      mode: 'continuous',
+      continuousMinutes: 20,
+      rounds: 6,
+      effortSeconds: 45,
+      recoverySeconds: 15,
+    });
+    this.cardioDialogVisible.set(true);
+  }
+
+  openEditCardioDialog(workout: Workout, workoutExercise: WorkoutExercise): void {
+    this.targetWorkout = workout;
+    this.editingCardioExercise.set(workoutExercise);
+
+    const sets = workoutExercise.sets ?? [];
+    const isContinuous = sets.length <= 1 && (sets[0]?.restTime ?? 0) === 0;
+
+    this.cardioForm.reset({
+      exerciseId: workoutExercise.exerciseId,
+      mode: isContinuous ? 'continuous' : 'intervals',
+      continuousMinutes: isContinuous ? Math.round((sets[0]?.targetDuration ?? 1200) / 60) : 20,
+      rounds: isContinuous ? 6 : sets.length,
+      effortSeconds: isContinuous ? 45 : (sets[0]?.targetDuration ?? 45),
+      recoverySeconds: isContinuous ? 15 : (sets[0]?.restTime ?? 15),
+    });
+
+    this.cardioDialogVisible.set(true);
+  }
+
+  cardioDialogHeader(): string {
+    return this.editingCardioExercise() ? 'Modifier le cardio' : 'Ajouter un cardio';
+  }
+
+  isCardioIntervals(): boolean {
+    return this.cardioForm.get('mode')?.value === 'intervals';
+  }
+
+  onSubmitCardio(): void {
+    if (this.cardioForm.invalid) {
+      this.cardioForm.markAllAsTouched();
+      return;
+    }
+
+    const workout = this.targetWorkout;
+    if (!workout) return;
+
+    const { exerciseId, mode, continuousMinutes, rounds, effortSeconds, recoverySeconds } = this.cardioForm.value;
+
+    const sets: CreateSetTemplatePayload[] =
+      mode === 'continuous'
+        ? [{ targetDuration: Math.round(continuousMinutes * 60), restTime: 0, order: 1 }]
+        : Array.from({ length: rounds }, (_, index) => ({
+            targetDuration: effortSeconds,
+            restTime: recoverySeconds,
+            order: index + 1,
+          }));
+
+    const exerciseName = this.cardioExercises().find((exercise) => exercise.id === exerciseId)?.name ?? 'Cardio';
+    const editing = this.editingCardioExercise();
+
+    this.savingCardio.set(true);
+
+    const request$ = editing
+      ? this.entrainementService.updateWorkoutExercise(editing.id, { exerciseId, sets })
+      : this.entrainementService.addExerciseToWorkout({
+          workoutId: workout.id,
+          exerciseId,
+          order: (workout.exercises?.length ?? 0) + 1,
+          sets,
+        });
+
+    request$.subscribe({
+      next: () => {
+        this.savingCardio.set(false);
+        this.cardioDialogVisible.set(false);
+        this.toaster.success(
+          editing ? 'Cardio modifié' : 'Cardio ajouté',
+          editing ? `« ${exerciseName} » a été mis à jour.` : `« ${exerciseName} » ajouté à « ${workout.name} ».`
+        );
+        this.loadProgram();
+      },
+      error: () => {
+        this.savingCardio.set(false);
+        this.toaster.error('Cardio', editing ? 'La modification a échoué.' : "L'ajout du cardio a échoué.");
+      },
+    });
+  }
+
+  /** Résumé lisible d'une planification cardio (remplace le détail série par série). */
+  cardioSummary(workoutExercise: WorkoutExercise): string {
+    const sets = workoutExercise.sets ?? [];
+    if (sets.length === 0) return 'Aucune série planifiée';
+
+    const isContinuous = sets.length === 1 && sets[0].restTime === 0;
+    if (isContinuous) {
+      const minutes = Math.round((sets[0].targetDuration ?? 0) / 60);
+      return `Continu : ${minutes} min`;
+    }
+
+    const effort = sets[0].targetDuration ?? 0;
+    const recovery = sets[0].restTime;
+    return `Fractionné : ${sets.length} × ${effort}s effort / ${recovery}s récup`;
   }
 
   getFieldError(form: FormGroup, fieldName: string): string | null {

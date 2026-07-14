@@ -1,0 +1,55 @@
+<div class="history-header">
+  <h2>Historique des séances</h2>
+</div>
+
+@if (loading()) {
+  <div class="sessions">
+    @for (placeholder of [1, 2, 3]; track placeholder) {
+      <p-skeleton height="5rem" borderRadius="10px" />
+    }
+  </div>
+} @else if (sessions().length === 0) {
+  <p class="muted">Aucune séance terminée pour le moment. Lance une séance depuis un programme !</p>
+} @else {
+  <div class="sessions">
+    @for (session of sessions(); track session.id) {
+      <div class="session-card">
+        <button type="button" class="session-summary" (click)="toggle(session.id)">
+          <i class="pi pi-chevron-down summary-chevron" [class.expanded]="isExpanded(session.id)"></i>
+
+          <div class="summary-main">
+            <span class="workout-name" [class.muted]="!session.workout">{{ workoutLabel(session) }}</span>
+            @if (programLabel(session); as program) {
+              <span class="muted program-name">{{ program }}</span>
+            }
+          </div>
+
+          <span class="muted summary-date">{{ session.date | date: 'dd/MM/yyyy HH:mm' }}</span>
+          <span class="muted summary-duration"><i class="pi pi-clock"></i> {{ formatDuration(session.duration ?? 0) }}</span>
+          <p-tag [value]="successCount(session) + '/' + session.sets.length + ' séries réussies'" severity="info" />
+        </button>
+
+        @if (isExpanded(session.id)) {
+          <div class="session-detail">
+            @for (block of blocksOf(session); track block.exerciseName) {
+              <div class="detail-block">
+                <div class="detail-block-header">
+                  <span class="exercise-name">{{ block.exerciseName }}</span>
+                  <p-tag [value]="bodyPartLabel(block.bodyPart)" severity="info" />
+                </div>
+                <div class="detail-sets">
+                  @for (set of block.sets; track set.id) {
+                    <span class="detail-set" [class.failed]="!set.success">
+                      <i [class]="set.success ? 'pi pi-check-circle' : 'pi pi-times-circle'"></i>
+                      {{ setLabel(set) }}
+                    </span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+}

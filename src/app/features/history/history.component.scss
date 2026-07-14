@@ -1,0 +1,145 @@
+:host {
+  display: block;
+}
+
+.history-header {
+  margin-bottom: 1.5rem;
+
+  h2 {
+    margin: 0;
+  }
+}
+
+.muted {
+  color: var(--app-color-text-muted);
+}
+
+.sessions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.session-card {
+  background: var(--app-color-surface);
+  border: 1px solid var(--app-color-surface-border);
+  border-radius: var(--app-radius-lg);
+  overflow: hidden;
+}
+
+.session-summary {
+  display: grid;
+  grid-template-columns: 1.25rem minmax(10rem, 1fr) auto auto auto;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.9rem 1.1rem;
+  background: transparent;
+  border: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background: color-mix(in srgb, var(--app-color-primary) 4%, transparent);
+  }
+
+  .summary-chevron {
+    transition: transform 0.15s ease;
+    color: var(--app-color-text-muted);
+
+    &.expanded {
+      transform: rotate(180deg);
+    }
+  }
+
+  .summary-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+
+    .workout-name {
+      font-weight: 600;
+    }
+
+    .program-name {
+      font-size: 0.85rem;
+    }
+  }
+
+  .summary-date,
+  .summary-duration {
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  .summary-duration {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.session-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0 1.1rem 1rem;
+  border-top: 1px solid var(--app-color-surface-border);
+}
+
+.detail-block {
+  padding-top: 0.75rem;
+
+  .detail-block-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.5rem;
+
+    .exercise-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+  }
+}
+
+.detail-sets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.detail-set {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  background: color-mix(in srgb, var(--p-green-500, #22c55e) 8%, transparent);
+  color: var(--p-green-600, #16a34a);
+
+  &.failed {
+    background: color-mix(in srgb, var(--p-red-500, #ef4444) 7%, transparent);
+    color: var(--p-red-500, #ef4444);
+  }
+}
+
+// Mobile : le résumé passe sur deux lignes
+@media (max-width: 700px) {
+  .session-summary {
+    grid-template-columns: 1.25rem 1fr;
+    grid-template-rows: auto auto;
+    row-gap: 0.4rem;
+
+    .summary-date,
+    .summary-duration,
+    p-tag {
+      grid-column: 2;
+    }
+  }
+}

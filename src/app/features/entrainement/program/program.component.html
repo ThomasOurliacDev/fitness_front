@@ -16,6 +16,10 @@
     @for (program of programs(); track program.id) {
       <div class="program-card" role="button" tabindex="0" (click)="openProgram(program)" (keydown.enter)="openProgram(program)">
         <p-card [header]="program.name" [subheader]="(program.workouts?.length ?? 0) + ' séance(s)'">
+          <p-button icon="pi pi-trash" [text]="true" size="small" severity="danger" styleClass="delete-program-btn"
+            ariaLabel="Supprimer le programme"
+            [loading]="deletingProgramId() === program.id"
+            (onClick)="confirmDeleteProgram($event, program)" />
           @if (program.description) {
             <p class="description">{{ program.description }}</p>
           }
@@ -75,3 +79,7 @@
     </div>
   </form>
 </p-dialog>
+
+<!-- Popup de confirmation (suppression d'un programme) -->
+<p-confirmpopup />
+

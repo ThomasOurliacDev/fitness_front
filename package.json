@@ -27,6 +27,7 @@
     "@angular/platform-browser-dynamic": "^22.0.0",
     "@angular/router": "^22.0.0",
     "@primeuix/themes": "^2.0.3",
+    "chart.js": "^4.5.1",
     "material-icons": "^1.13.14",
     "material-symbols": "^0.44.12",
     "primeicons": "^7.0.0",

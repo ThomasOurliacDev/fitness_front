@@ -8,9 +8,13 @@ import {
   CreateWorkoutExercisePayload,
   CreateWorkoutPayload,
   Exercise,
+  ExerciseProgress,
+  HistorySession,
+  LoggedExercise,
   LoggedSet,
   Program,
   ReorderWorkoutExercisesPayload,
+  SessionStats,
   UpdateWorkoutExercisePayload,
   Workout,
   WorkoutExercise,
@@ -44,6 +48,20 @@ export class EntrainementService {
   createProgram(payload: CreateProgramPayload) {
     return this.httpClient
       .post<ApiEnvelope<Program>>(`${this.apiUrl}/program`, payload)
+      .pipe(map((res) => res.data));
+  }
+
+  /** Supprime un programme entier (séances/exercices en cascade, historique conservé). */
+  deleteProgram(id: string) {
+    return this.httpClient
+      .delete<ApiEnvelope<{ id: string }>>(`${this.apiUrl}/program/${id}`)
+      .pipe(map((res) => res.data));
+  }
+
+  /** Supprime une séance planifiée entière (exercices en cascade, historique conservé). */
+  deleteWorkout(id: string) {
+    return this.httpClient
+      .delete<ApiEnvelope<{ id: string }>>(`${this.apiUrl}/workouts/${id}`)
       .pipe(map((res) => res.data));
   }
 
@@ -116,6 +134,38 @@ export class EntrainementService {
   logSet(payload: CreateSetPayload) {
     return this.httpClient
       .post<ApiEnvelope<LoggedSet>>(`${this.apiUrl}/sets`, payload)
+      .pipe(map((res) => res.data));
+  }
+
+  // --- Historique & activité ---
+
+  /** Les séances terminées, les plus récentes en premier (jusqu'à 100). */
+  getHistory() {
+    return this.httpClient
+      .get<ApiEnvelope<HistorySession[]>>(`${this.apiUrl}/workout-sessions/history`)
+      .pipe(map((res) => res.data));
+  }
+
+  /** Statistiques agrégées : totaux, tendance récente, répartition par groupe musculaire. */
+  getStats() {
+    return this.httpClient
+      .get<ApiEnvelope<SessionStats>>(`${this.apiUrl}/workout-sessions/stats`)
+      .pipe(map((res) => res.data));
+  }
+
+  /** Les exercices déjà réalisés au moins une fois, pour peupler le sélecteur du graphique. */
+  getLoggedExercises() {
+    return this.httpClient
+      .get<ApiEnvelope<LoggedExercise[]>>(`${this.apiUrl}/workout-sessions/logged-exercises`)
+      .pipe(map((res) => res.data));
+  }
+
+  /** L'historique de performance (une entrée par séance terminée) des exercices demandés. */
+  getExerciseProgress(exerciseIds: string[]) {
+    return this.httpClient
+      .get<ApiEnvelope<ExerciseProgress[]>>(`${this.apiUrl}/workout-sessions/exercise-progress`, {
+        params: { exerciseIds: exerciseIds.join(',') },
+      })
       .pipe(map((res) => res.data));
   }
 }

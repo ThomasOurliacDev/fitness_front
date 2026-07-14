@@ -6,7 +6,7 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
 import { EntrainementService } from '../entrainement.service';
-import { bodyPartLabel, LoggedSet, SetTemplate, WorkoutExercise, WorkoutSession } from '../entrainement.model';
+import { bodyPartLabel, formatDuration, LoggedSet, SetTemplate, WorkoutExercise, WorkoutSession } from '../entrainement.model';
 import { ToasterService } from '../../../core/notifications/toaster.service';
 
 /** Une ligne de série à réaliser : l'objectif du template + la saisie du réel. */
@@ -120,16 +120,7 @@ export class SessionComponent implements OnInit, OnDestroy {
   }
 
   formatElapsed(): string {
-    return this.formatDuration(this.elapsedSeconds());
-  }
-
-  private formatDuration(totalSeconds: number): string {
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-    const mm = minutes.toString().padStart(2, '0');
-    const ss = seconds.toString().padStart(2, '0');
-    return hours > 0 ? `${hours}:${mm}:${ss}` : `${mm}:${ss}`;
+    return formatDuration(this.elapsedSeconds());
   }
 
   // --- Construction de la vue ---
@@ -326,7 +317,7 @@ export class SessionComponent implements OnInit, OnDestroy {
   }
 
   formatRest(): string {
-    return this.formatDuration(this.restRemaining() ?? 0);
+    return formatDuration(this.restRemaining() ?? 0);
   }
 
   restProgress(): number {
@@ -372,7 +363,7 @@ export class SessionComponent implements OnInit, OnDestroy {
         this.finishing.set(false);
         this.toaster.success(
           'Séance terminée',
-          `Bien joué ! ${this.doneCount()}/${this.totalCount()} séries en ${this.formatDuration(finished.duration ?? 0)}.`
+          `Bien joué ! ${this.doneCount()}/${this.totalCount()} séries en ${formatDuration(finished.duration ?? 0)}.`
         );
         this.router.navigate(['/entrainement']);
       },
